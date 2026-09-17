@@ -2,22 +2,17 @@ using namespace QPI;
 
 // Qpump: bonding-curve launchpad for meme coins.
 //
-// Lifecycle of a coin:
-//   OPENING      one-price opening batch; every order in the window gets the same average price
-//   OPEN         linear bonding curve from 1 QU to 10 QU per token over 710M tokens
-//   COMPLETE     the curve sold out; graduation pending
-//   DISTRIBUTING the real asset exists; holder balances are being delivered through QX
-//   REFUNDING    the coin expired before graduating; holders get the curve QU back pro rata
+// Coin stages:
+//   OPENING      one-price opening batch
+//   OPEN         linear curve, 1 QU to 10 QU
+//   COMPLETE     curve sold out, graduation pending
+//   DISTRIBUTING real asset issued, holders being delivered
+//   REFUNDING    coin expired, holders refunded pro rata
 //
-// A graduated coin keeps a permanent read-only record after every holder is delivered, and its
-// name can never be launched again. A refunded coin is removed and its name is free again.
-//
-// Balances are internal to this contract until graduation. Graduation pays the QX issuance
-// fee to create the asset with this contract as issuer, moves the pool share to Qswap, seeds
-// a Qswap pool at exactly the final curve price, pays the creator reward and then delivers
-// every holder balance as QX-managed shares.
-//
-// There is no admin and no pause. Every fee and limit is a constant below.
+// A graduated coin keeps its record and name forever.
+// A refunded coin is removed and frees its name.
+// Balances are internal until graduation issues the real asset.
+// No admin, no pause. Fees and limits are constants below.
 
 // ---- Curve ----
 constexpr sint64 QPUMP_CURVE_SUPPLY = 710000000LL;            // tokens sold on the curve
@@ -25,7 +20,7 @@ constexpr sint64 QPUMP_POOL_RESERVE = 290000000LL;            // upper bound on 
 constexpr uint64 QPUMP_START_PRICE_MILLI = 1000ULL;           // 1 QU per token
 constexpr uint64 QPUMP_END_PRICE_MILLI = 10000ULL;            // 10 QU per token
 constexpr uint64 QPUMP_MILLI = 1000ULL;
-// cost(x, y) = (LINEAR * (y - x) + SLOPE * (y * y - x * x)) divided by DENOMINATOR
+// cost(x, y) integrates the linear price line
 constexpr uint64 QPUMP_COST_LINEAR = 1420000000000ULL;        // 2 * supply * start price
 constexpr uint64 QPUMP_COST_SLOPE = 9000ULL;                  // end price minus start price, in milli QU
 constexpr uint64 QPUMP_COST_DENOMINATOR = 1420000000000ULL;   // 2 * supply * 1000
@@ -38,36 +33,36 @@ constexpr sint64 QPUMP_OPENING_QU_CAP = 377187500LL;          // cost(0, token c
 
 // ---- QDOGE buyback ----
 constexpr uint64 QPUMP_QDOGE_NAME = 297549120593ULL;              // QDOGE
-constexpr sint64 QPUMP_QDOGE_MIN_BUY = 5000000LL;             // smallest epoch buy, so the flat Qswap swap fee stays small
-constexpr uint64 QPUMP_QDOGE_POOL_DIVISOR = 50ULL;            // one buy spends at most 2 percent of the pool QU reserve
+constexpr sint64 QPUMP_QDOGE_MIN_BUY = 5000000LL;             // smallest epoch buy, keeps the flat fee small
+constexpr uint64 QPUMP_QDOGE_POOL_DIVISOR = 50ULL;            // one buy takes at most 2 percent of reserves
 
 // ---- Fees ----
 constexpr sint64 QPUMP_LAUNCH_FEE = 25000000LL;
-constexpr sint64 QPUMP_LAUNCH_FEE_BURN = 5000000LL;           // the rest of the launch fee goes to shareholders
+constexpr sint64 QPUMP_LAUNCH_FEE_BURN = 5000000LL;           // the rest goes to shareholders
 constexpr sint64 QPUMP_GRADUATION_REWARD = 50000000LL;        // paid to the creator from the raise
-constexpr sint64 QPUMP_GRADUATION_BURN = 10000000LL;          // burned from the raise at graduation to fund execution fees
-constexpr sint64 QPUMP_TRANSFER_FEE = 100LL;                  // flat fee for an internal transfer of curve tokens, burned
+constexpr sint64 QPUMP_GRADUATION_BURN = 10000000LL;          // burned from the raise at graduation
+constexpr sint64 QPUMP_TRANSFER_FEE = 100LL;                  // flat fee per internal transfer, burned
 constexpr sint64 QPUMP_MIN_TRADE_FEE = 1000LL;
 constexpr uint64 QPUMP_BPS = 10000ULL;
 constexpr uint64 QPUMP_TRADE_FEE_BPS = 100ULL;                // 1 percent
 constexpr uint64 QPUMP_FEE_BURN_SHARE_BPS = 2000ULL;          // 20 percent of the trade fee is burned
-constexpr uint64 QPUMP_FEE_QDOGE_SHARE_BPS = 1000ULL;         // 10 percent of the trade fee buys QDOGE on Qswap, locked for good
+constexpr uint64 QPUMP_FEE_QDOGE_SHARE_BPS = 1000ULL;         // 10 percent buys QDOGE, locked for good
 constexpr sint64 QPUMP_QSWAP_LIQUIDITY_FEE = 100000LL;        // flat Qswap fee on AddLiquidity
 constexpr sint64 QPUMP_DEFAULT_QX_ISSUANCE_FEE = 1000000000LL;
 constexpr sint64 QPUMP_DEFAULT_QX_TRANSFER_FEE = 100LL;
 constexpr sint64 QPUMP_DEFAULT_QSWAP_POOL_FEE = 200000000LL;
 
 // ---- Lifecycle ----
-constexpr uint16 QPUMP_IDLE_EPOCHS = 9;                        // about two months with no buys or sells before a coin is refunded; there is no age limit
+constexpr uint16 QPUMP_IDLE_EPOCHS = 9;                        // about two months idle, then refunded; no age limit
 constexpr uint16 QPUMP_GRADUATION_STALL_EPOCHS = 2;
 constexpr uint32 QPUMP_GRADUATION_RETRY_TICKS = 100;
 constexpr uint32 QPUMP_MANUAL_RETRY_TICKS = 5;
 constexpr uint8 QPUMP_MAX_DELIVERY_FAILURES = 3;
-constexpr sint64 QPUMP_DELIVERY_BUDGET_FACTOR = 2;               // delivery budget covers every holder twice
+constexpr sint64 QPUMP_DELIVERY_BUDGET_FACTOR = 2;               // covers every holder twice
 
 // ---- Capacities ----
-// Sized for growth up front, well under the 1 GB contract state limit, so no migration is needed later.
-constexpr uint64 QPUMP_MAX_COINS = 32768;                     // live coins: opening, trading, graduating or paying out
+// Sized up front, far under the 1 GB state limit.
+constexpr uint64 QPUMP_MAX_COINS = 32768;                     // coins not yet closed
 constexpr uint64 QPUMP_ARCHIVE_CAPACITY = 65536;              // permanent records of graduated coins
 constexpr uint64 QPUMP_NAME_CAPACITY = 262144;                // live and graduated names
 constexpr uint64 QPUMP_CREATOR_CAPACITY = 65536;
@@ -76,16 +71,16 @@ constexpr uint64 QPUMP_HOLDER_CAPACITY = 4194304;
 constexpr uint64 QPUMP_HOLDER_LOAD_LIMIT = 3355443;           // 80 percent of capacity
 constexpr uint64 QPUMP_WALLET_CAPACITY = 1048576;
 constexpr uint64 QPUMP_WALLET_LOAD_LIMIT = 838860;            // 80 percent of capacity
-constexpr uint32 QPUMP_ARCHIVE_FLAG = 2147483648U;            // name map value marks a graduated record instead of a live slot
-constexpr uint64 QPUMP_COIN_KEY_MASK = 4294967295ULL;         // holder key = wallet id in the high 32 bits, coin id in the low 32 bits
-constexpr uint32 QPUMP_MAX_LIVE_COINS_PER_CREATOR = 10;   // live at once, not a lifetime cap: a slot frees when a coin graduates or is refunded
+constexpr uint32 QPUMP_ARCHIVE_FLAG = 2147483648U;            // name map value marks a graduated record
+constexpr uint64 QPUMP_COIN_KEY_MASK = 4294967295ULL;         // holder key: wallet id high, coin id low
+constexpr uint32 QPUMP_MAX_LIVE_COINS_PER_CREATOR = 10;   // live at once, not a lifetime cap
 constexpr uint32 QPUMP_NO_SLOT = 4294967295U;
 
 // ---- Processing budgets ----
 constexpr uint32 QPUMP_TICK_SLOT_SCAN = 256;
 constexpr uint32 QPUMP_TICK_COIN_WORK = 4;
 constexpr uint32 QPUMP_TICK_PAYOUTS = 16;
-constexpr uint32 QPUMP_TICK_SCAN_STEPS = 64;                  // holders visited per tick, including ones that fail
+constexpr uint32 QPUMP_TICK_SCAN_STEPS = 64;                  // holders visited per tick, failures included
 constexpr uint32 QPUMP_PROCESS_MAX_PAYOUTS = 128;
 constexpr uint32 QPUMP_PROCESS_SCAN_STEPS = 512;
 constexpr uint32 QPUMP_LIST_PAGE = 32;
@@ -167,13 +162,12 @@ struct QPUMP2
 
 struct QPUMP : public ContractBase
 {
-    // Wallets get a compact id the first time they hold any coin, and lose it when they hold none.
-    // Holder entries are keyed by that id and the coin id. Each coin's entries form a linked list, so
-    // payouts visit only that coin's holders however large the table grows. A key of 0 means none.
+    // Keyed by wallet id and coin id. Each coin
+    // links its holders, so payouts skip other coins.
     struct HolderEntry
     {
-        uint32 tokens;       // tokens owned on the curve
-        uint32 openingQu;    // net QU committed to the opening batch, converted to tokens once settled
+        uint32 tokens;
+        uint32 openingQu;    // net QU in the batch until it settles
         uint64 nextKey;
         uint64 prevKey;
     };
@@ -181,22 +175,22 @@ struct QPUMP : public ContractBase
     struct Coin
     {
         id creator;
-        id metaDigest;       // sha2-256 of the off-chain metadata document
+        id metaDigest;       // sha2-256 of the off-chain metadata
         uint64 coinId;
         uint64 name;
-        sint64 realQu;       // QU backing the curve; after graduation the unspent delivery budget
-        sint64 sold;         // tokens sold on the curve
-        sint64 batchQu;      // net QU committed in the opening batch
-        sint64 batchTokens;  // tokens the opening batch bought
+        sint64 realQu;       // QU backing the curve, later the delivery budget
+        sint64 sold;
+        sint64 batchQu;
+        sint64 batchTokens;
         sint64 poolQu;
         sint64 poolTokens;
         sint64 snapQu;       // refund snapshot
         sint64 snapSold;
-        uint64 scanCursor;   // holder key where a payout scan resumes; 0 starts from the list head
+        uint64 scanCursor;   // payout resume key, 0 starts at the head
         uint32 createdTick;
         uint32 holders;
         uint32 lastAttemptTick;
-        uint32 gradHolders;  // holder count when graduation started delivering
+        uint32 gradHolders;  // holders when delivery started
         uint16 createdEpoch;
         uint16 lastTradeEpoch;
         uint16 completeEpoch;
@@ -214,14 +208,14 @@ struct QPUMP : public ContractBase
         uint64 coinId;
         uint64 name;
         sint64 sold;
-        sint64 poolQu;       // QU seeded into the Qswap pool, 0 when the pool fallback refunded it
+        sint64 poolQu;       // QU seeded into the pool, 0 on fallback
         sint64 poolTokens;
         uint32 createdTick;
         uint32 holders;      // holders when delivery started
         uint16 createdEpoch;
         uint16 completeEpoch;
         uint16 closedEpoch;  // every holder delivered
-        uint8 poolFallback;  // 1 when the pool could not be seeded and its QU went back to holders
+        uint8 poolFallback;  // 1 when pool QU went back to holders
     };
 
     struct CoinSummary
@@ -248,9 +242,9 @@ struct QPUMP : public ContractBase
         sint64 realQu;
         sint64 sold;
         uint32 code;
-        uint32 holders;      // holder count of the coin after the event
+        uint32 holders;      // holders after the event
         sint64 fee;          // trade fee charged
-        id counterparty;     // CREATED: metadata digest; TRANSFER: sender
+        id counterparty;     // CREATED metadata digest, TRANSFER sender
         sint8 _terminator;
     };
 
@@ -315,7 +309,7 @@ struct QPUMP : public ContractBase
     struct TradeFee_input
     {
         sint64 amount;
-        bit inclusive;   // 1 when the amount already contains the fee
+        bit inclusive;   // 1 when the amount contains the fee
     };
     struct TradeFee_output
     {
@@ -423,7 +417,7 @@ struct QPUMP : public ContractBase
     struct ChangePositions_input
     {
         uint32 walletId;
-        sint32 delta;       // plus one, minus one, or zero to only free an unused id
+        sint32 delta;       // plus one, minus one, or zero
     };
     struct ChangePositions_output
     {
@@ -669,7 +663,7 @@ struct QPUMP : public ContractBase
     struct PayHolder_input
     {
         uint64 key;
-        sint64 callerFee;   // QU attached by a claiming holder, used only when the delivery budget is short
+        sint64 callerFee;   // QU from a claimer, used if the budget is short
         uint32 slot;
     };
     struct PayHolder_output
@@ -738,7 +732,7 @@ struct QPUMP : public ContractBase
     struct GetCoin_output
     {
         Coin coin;
-        GraduatedCoin record;  // filled when graduated is set
+        GraduatedCoin record;  // set when graduated
         sint64 priceMilli;
         sint64 progressBps;
         sint64 marketCapQu;
@@ -1004,7 +998,7 @@ struct QPUMP : public ContractBase
     struct Buy_input
     {
         uint64 name;
-        sint64 tokens;    // exact tokens to buy on the curve; ignored during the opening batch
+        sint64 tokens;    // exact tokens, ignored during the opening batch
     };
     struct Buy_output
     {
@@ -1021,7 +1015,7 @@ struct QPUMP : public ContractBase
     struct BuyWithQu_input
     {
         uint64 name;
-        sint64 minTokens; // fewest tokens accepted for the whole attached QU; ignored during the opening batch
+        sint64 minTokens; // fewest tokens accepted for the attached QU
     };
     struct BuyWithQu_output
     {
@@ -1224,7 +1218,7 @@ struct QPUMP : public ContractBase
 
     // ================= Private functions =================
 
-    // Integer area under the linear price line between x = from and x = to tokens sold.
+    // Integer area under the linear price line.
     PRIVATE_FUNCTION_WITH_LOCALS(CurveCost)
     {
         output.qu = 0;
@@ -1265,7 +1259,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Largest token count whose rounded-up curve cost fits the budget.
+    // Most tokens whose curve cost fits the budget.
     PRIVATE_FUNCTION_WITH_LOCALS(TokensForQu)
     {
         output.tokens = 0;
@@ -1307,7 +1301,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Largest token count whose cost plus trade fee fits the budget.
+    // Most tokens whose cost plus fee fits the budget.
     PRIVATE_FUNCTION_WITH_LOCALS(TokensForTotal)
     {
         output.tokens = 0;
@@ -1357,7 +1351,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Mirrors qpi.issueAsset: 1 to 7 bytes, first A to Z, then A to Z or 0 to 9, zero padded.
+    // Mirrors qpi.issueAsset name rules.
     PRIVATE_FUNCTION_WITH_LOCALS(IsValidName)
     {
         output.valid = 0;
@@ -1460,7 +1454,7 @@ struct QPUMP : public ContractBase
 
     // ================= Private procedures =================
 
-    // Returns the id of a wallet, registering it with zero positions if it is new.
+    // Returns a wallet id, registering the wallet if new.
     PRIVATE_PROCEDURE_WITH_LOCALS(AcquireWallet)
     {
         output.ok = 0;
@@ -1499,7 +1493,7 @@ struct QPUMP : public ContractBase
         output.ok = 1;
     }
 
-    // Adjusts how many coins a wallet holds and frees the wallet id when it reaches zero.
+    // Tracks positions and frees the wallet id at zero.
     PRIVATE_PROCEDURE_WITH_LOCALS(ChangePositions)
     {
         if (input.walletId >= QPUMP_WALLET_CAPACITY)
@@ -1543,7 +1537,7 @@ struct QPUMP : public ContractBase
         state.mut().shareholderPot += input.fee - locals.burn - locals.qdoge;
     }
 
-    // Puts a stored holder entry at the head of its coin's holder list.
+    // Puts a holder entry at the head of its list.
     PRIVATE_PROCEDURE_WITH_LOCALS(LinkHolder)
     {
         if (!state.get().holders.get(input.key, locals.entry))
@@ -1562,7 +1556,7 @@ struct QPUMP : public ContractBase
         state.mut().holderHeads.set(input.slot, input.key);
     }
 
-    // Takes a holder entry out of its coin's holder list. Call before removing the entry.
+    // Unlinks a holder entry. Call before removing it.
     PRIVATE_PROCEDURE_WITH_LOCALS(UnlinkHolder)
     {
         if (!state.get().holders.get(input.key, locals.entry))
@@ -1588,7 +1582,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Adds an order to the one-price opening batch. The caller refunds amount minus output.used.
+    // Adds an order to the batch. Caller refunds the rest.
     PRIVATE_PROCEDURE_WITH_LOCALS(PlaceOpeningOrder)
     {
         output.returnCode = QPUMP_OK;
@@ -1718,7 +1712,7 @@ struct QPUMP : public ContractBase
         LOG_INFO(locals.log);
     }
 
-    // Converts the opening batch into curve tokens once the window is over.
+    // Converts the batch into tokens once the window ends.
     PRIVATE_PROCEDURE_WITH_LOCALS(SettleOpening)
     {
         output.settled = 0;
@@ -1777,8 +1771,8 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Frees the slot of a coin whose holders have all been paid. Unspent QU is burned. A graduated coin
-    // leaves a permanent record and keeps its name.
+    // Frees a fully paid coin slot and burns unspent QU.
+    // Graduated coins leave a record and keep their name.
     PRIVATE_PROCEDURE_WITH_LOCALS(CloseCoin)
     {
         locals.coin = state.get().coins.get(input.slot);
@@ -1811,7 +1805,7 @@ struct QPUMP : public ContractBase
         }
         else
         {
-            // Refunded coins free their name. A graduated name stays blocked by its issued asset.
+            // Refunded names are freed, graduated names stay taken.
             state.mut().nameToSlot.removeByKey(locals.coin.name);
         }
         state.mut().holderHeads.set(input.slot, 0);
@@ -1842,7 +1836,7 @@ struct QPUMP : public ContractBase
         state.mut().coins.set(input.slot, locals.empty);
     }
 
-    // Moves a stale coin to REFUNDING, and reverts a stalled graduation that never started.
+    // Refunds a stale coin, reverts a graduation never started.
     PRIVATE_PROCEDURE_WITH_LOCALS(CheckExpiry)
     {
         output.changed = 0;
@@ -1870,8 +1864,8 @@ struct QPUMP : public ContractBase
             return;
         }
 
-        // Graduation started but the pool steps keep failing: deliver the tokens anyway and give the
-        // unused pool QU back to holders pro rata, so nothing stays locked in the contract.
+        // Pool steps keep failing: deliver tokens anyway and
+        // return the unused pool QU to holders pro rata.
         if (locals.coin.status == QPUMP_STATUS_COMPLETE && locals.coin.gradStep >= 1 && locals.coin.gradStep < 4
             && qpi.epoch() >= locals.coin.completeEpoch + QPUMP_GRADUATION_STALL_EPOCHS)
         {
@@ -1959,8 +1953,8 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Resumable graduation. Each finished step is persisted in gradStep because nothing rolls back.
-    //   0: QX IssueAsset with this contract as issuer, supply = sold + pool tokens
+    // Resumable graduation, since nothing rolls back.
+    //   0: QX IssueAsset, this contract as issuer
     //   1: Qswap CreatePool, skipped if someone already created it
     //   2: QX TransferShareManagementRights of the pool tokens to Qswap
     //   3: Qswap AddLiquidity at exactly the final curve price
@@ -1977,8 +1971,8 @@ struct QPUMP : public ContractBase
         locals.coin.lastAttemptTick = qpi.tick();
         state.mut().coins.set(input.slot, locals.coin);
 
-        // QU actually spent by each external call is measured from the contract balance, so a fee
-        // kept by QX on a failed call or a refund of an overpaid fee is always accounted exactly.
+        // Spending is measured from the balance, so kept fees
+        // and refunds are always accounted exactly.
         if (locals.coin.gradStep == 0)
         {
             if (qpi.queryFeeReserve(QX_CONTRACT_INDEX) <= 0 || qpi.queryFeeReserve(QSWAP_CONTRACT_INDEX) <= 0)
@@ -2037,7 +2031,7 @@ struct QPUMP : public ContractBase
             }
         }
 
-        // Pool creation comes before moving any tokens, so a failure here leaves nothing stranded in Qswap.
+        // Create the pool first, so failure strands no tokens.
         if (output.returnCode == QPUMP_OK && locals.coin.gradStep == 1)
         {
             locals.poolStateIn.assetIssuer = SELF;
@@ -2115,8 +2109,7 @@ struct QPUMP : public ContractBase
 
         if (output.returnCode == QPUMP_OK && locals.coin.gradStep == 3)
         {
-            // If fees moved between steps, seed whatever this coin can still afford rather than
-            // spending QU that belongs to other coins.
+            // If fees moved, seed only what this coin can afford.
             locals.deliverBudget = static_cast<sint64>(locals.coin.holders) * state.get().cachedQxTransferFee * QPUMP_DELIVERY_BUDGET_FACTOR;
             locals.available = locals.coin.realQu - QPUMP_GRADUATION_REWARD - QPUMP_GRADUATION_BURN - locals.deliverBudget - QPUMP_QSWAP_LIQUIDITY_FEE;
             if (locals.available < locals.coin.poolQu)
@@ -2165,7 +2158,7 @@ struct QPUMP : public ContractBase
                 qpi.transfer(locals.coin.creator, QPUMP_GRADUATION_REWARD);
                 locals.coin.realQu -= QPUMP_GRADUATION_REWARD;
             }
-            // Burn from the raise to fund execution fees, never touching the holder delivery budget.
+            // Burn from the raise, never the delivery budget.
             locals.deliverBudget = static_cast<sint64>(locals.coin.holders) * state.get().cachedQxTransferFee * QPUMP_DELIVERY_BUDGET_FACTOR;
             locals.burnAmount = locals.coin.realQu - locals.deliverBudget;
             if (locals.burnAmount > QPUMP_GRADUATION_BURN)
@@ -2224,7 +2217,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Delivers or refunds one holder entry and removes it.
+    // Delivers or refunds one holder, then removes the entry.
     PRIVATE_PROCEDURE_WITH_LOCALS(PayHolder)
     {
         output.returnCode = QPUMP_OK;
@@ -2271,7 +2264,7 @@ struct QPUMP : public ContractBase
                 locals.balanceBefore = locals.balanceOut.balance;
                 INVOKE_OTHER_CONTRACT_PROCEDURE_E(QX, TransferShareOwnershipAndPossession, locals.transferIn, locals.transferOut, locals.fee, transferError);
                 CALL(ContractBalance, locals.balanceIn, locals.balanceOut);
-                // QX keeps its fee once the call has run, even when the transfer itself fails.
+                // QX keeps its fee even when the transfer fails.
                 locals.qu = locals.balanceBefore > locals.balanceOut.balance ? locals.balanceBefore - locals.balanceOut.balance : 0;
                 if (locals.fromCaller)
                 {
@@ -2289,7 +2282,7 @@ struct QPUMP : public ContractBase
                 }
             }
             output.tokens = locals.tokens;
-            // Pool fallback: unused pool QU goes back to holders pro rata.
+            // Pool fallback: unused pool QU returns pro rata.
             locals.qu = 0;
             if (locals.coin.snapQu > 0 && locals.coin.snapSold > 0 && locals.tokens > 0)
             {
@@ -2364,7 +2357,7 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Walks the coin's holder list from the cursor and pays each holder.
+    // Walks the holder list from the cursor, paying each.
     PRIVATE_PROCEDURE_WITH_LOCALS(ProcessPayouts)
     {
         output.processed = 0;
@@ -2402,7 +2395,7 @@ struct QPUMP : public ContractBase
                 locals.failed = 1;
                 if (locals.payOut.returnCode == QPUMP_ERR_EXTERNAL_CALL)
                 {
-                    // QX itself is unavailable; every holder would fail the same way.
+                    // QX is unavailable, every holder would fail alike.
                     locals.systemic = 1;
                     break;
                 }
@@ -2645,7 +2638,7 @@ struct QPUMP : public ContractBase
         output.nextOffset = locals.slot < state.get().nextFreshSlot ? locals.slot : 0;
     }
 
-    // Pages through graduated coin records, oldest first.
+    // Pages graduated records, oldest first.
     PUBLIC_FUNCTION_WITH_LOCALS(ListGraduated)
     {
         output.count = 0;
@@ -2681,8 +2674,7 @@ struct QPUMP : public ContractBase
 
     // ================= Public procedures =================
 
-    // Launch a coin. The attached QU must cover the launch fee; anything above it becomes the
-    // creator order in the opening batch.
+    // Launch a coin. Extra QU joins the opening batch.
     PUBLIC_PROCEDURE_WITH_LOCALS(CreateCoin)
     {
         output.returnCode = QPUMP_OK;
@@ -2810,11 +2802,8 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // During the opening batch the whole attached amount joins the batch and input.tokens is ignored.
-    // On the curve input.tokens is the exact amount to buy and the attached QU is the most you pay.
-    // Shared by Buy and BuyWithQu. During the opening batch the whole reward joins the batch. On the
-    // curve, Buy takes an exact token count with the reward as the most it pays, and BuyWithQu spends
-    // the reward on as many tokens as it covers, refunding the rest.
+    // Shared by Buy and BuyWithQu. In the batch the whole
+    // reward joins it; on the curve the mode decides.
     PRIVATE_PROCEDURE_WITH_LOCALS(ExecuteBuy)
     {
         output.returnCode = QPUMP_OK;
@@ -3053,7 +3042,7 @@ struct QPUMP : public ContractBase
         output.returnCode = locals.executeOut.returnCode;
     }
 
-    // Spends the attached QU on as many curve tokens as it buys after the fee, refunding any rest.
+    // Spends the attached QU on tokens, refunding the rest.
     PUBLIC_PROCEDURE_WITH_LOCALS(BuyWithQu)
     {
         locals.executeIn.name = input.name;
@@ -3194,7 +3183,7 @@ struct QPUMP : public ContractBase
         LOG_INFO(locals.log);
     }
 
-    // Permissionless: settles a batch, expires a coin, retries graduation or pushes payouts.
+    // Permissionless: settle, expire, retry graduation or pay out.
     PUBLIC_PROCEDURE_WITH_LOCALS(Process)
     {
         output.returnCode = QPUMP_OK;
@@ -3246,8 +3235,8 @@ struct QPUMP : public ContractBase
         output.status = state.get().coins.get(locals.findOut.slot).status;
     }
 
-    // A holder collects their own delivery or refund immediately. During delivery the attached QU
-    // pays the QX transfer fee only if the coin delivery budget has run out; the rest is refunded.
+    // Collect your own delivery or refund now. Attached QU
+    // pays the QX fee only if the budget ran out.
     PUBLIC_PROCEDURE_WITH_LOCALS(Claim)
     {
         output.returnCode = QPUMP_OK;
@@ -3291,8 +3280,7 @@ struct QPUMP : public ContractBase
         output.qu = locals.payOut.qu;
     }
 
-    // Moves any amount of curve tokens between wallets while the coin is OPEN or waiting to
-    // graduate, for a flat transfer fee.
+    // Moves curve tokens between wallets for a flat fee.
     PUBLIC_PROCEDURE_WITH_LOCALS(Transfer)
     {
         output.returnCode = QPUMP_OK;
@@ -3315,7 +3303,7 @@ struct QPUMP : public ContractBase
             output.returnCode = QPUMP_ERR_INSUFFICIENT_REWARD;
             return;
         }
-        // Recipients must be ordinary wallets: not empty, not the sender, not a contract address.
+        // Recipients must be ordinary wallets.
         if (input.tokens <= 0 || input.recipient == NULL_ID || input.recipient == qpi.invocator()
             || (input.recipient.u64._1 == 0 && input.recipient.u64._2 == 0 && input.recipient.u64._3 == 0 && input.recipient.u64._0 < 1024))
         {
@@ -3403,7 +3391,7 @@ struct QPUMP : public ContractBase
             }
         }
 
-        // Recipient first, so a failed insert changes nothing for the sender.
+        // Recipient first, so a failed insert changes nothing.
         locals.toEntry.tokens += static_cast<uint32>(input.tokens);
         if (state.mut().holders.set(locals.toKey, locals.toEntry) == NULL_INDEX)
         {
@@ -3421,8 +3409,8 @@ struct QPUMP : public ContractBase
             locals.positionsIn.delta = 1;
             CALL(ChangePositions, locals.positionsIn, locals.positionsOut);
         }
-        // The recipient joins the coin's holder list only after the sender entry is written below,
-        // because linking rewrites the current head entry, which may be the sender.
+        // Link the recipient after the sender entry is written,
+        // because linking rewrites the current head.
 
         locals.fromEntry.tokens = static_cast<uint32>(locals.effectiveOut.tokens - input.tokens);
         locals.fromEntry.openingQu = 0;
@@ -3503,8 +3491,7 @@ struct QPUMP : public ContractBase
         state.mut().cachedQswapPoolFee = QPUMP_DEFAULT_QSWAP_POOL_FEE;
     }
 
-    // POST_INCOMING_TRANSFER: plain QU sent to the contract address is returned. Refunds from QX
-    // and Qswap arrive as qpiTransfer and simply stay in the balance.
+    // Plain QU sent here is returned. Contract refunds stay.
     POST_INCOMING_TRANSFER()
     {
         if (input.type == TransferType::standardTransaction && input.amount > 0)
@@ -3528,8 +3515,8 @@ struct QPUMP : public ContractBase
         }
     }
 
-    // Once per epoch, spends the QDOGE pot on one Qswap buy, so the flat swap fee is paid once. The bought
-    // QDOGE stays with this contract, which has no way to move it, so it is out of circulation for good.
+    // One Qswap buy per epoch, paying the flat fee once.
+    // The bought QDOGE stays here, out of circulation.
     PRIVATE_PROCEDURE_WITH_LOCALS(BuyQdoge)
     {
         if (state.get().qdogePot < QPUMP_QDOGE_MIN_BUY || qpi.queryFeeReserve(QSWAP_CONTRACT_INDEX) <= 0)
@@ -3600,7 +3587,7 @@ struct QPUMP : public ContractBase
             return;
         }
 
-        // One coin at a time gets its deliveries or refunds pushed every tick.
+        // One coin gets payouts pushed each tick.
         if (state.get().activePayoutSlot != QPUMP_NO_SLOT)
         {
             locals.slot = state.get().activePayoutSlot;
@@ -3619,7 +3606,7 @@ struct QPUMP : public ContractBase
             }
         }
 
-        // Lifecycle sweep over a rotating window of the slots that have ever been used.
+        // Lifecycle sweep over a rotating window of used slots.
         locals.scanned = 0;
         locals.work = 0;
         while (locals.scanned < QPUMP_TICK_SLOT_SCAN && locals.scanned < state.get().nextFreshSlot && locals.work < QPUMP_TICK_COIN_WORK)
@@ -3690,7 +3677,7 @@ struct QPUMP : public ContractBase
             }
         }
 
-        // Holder lists and payout cursors use keys, so compacting the map does not disturb them.
+        // Lists and cursors use keys, so compaction is safe.
         state.mut().holders.cleanupIfNeeded();
         state.mut().nameToSlot.cleanupIfNeeded();
         state.mut().creatorLive.cleanupIfNeeded();
