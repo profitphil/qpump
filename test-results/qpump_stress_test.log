@@ -1,0 +1,270 @@
+== Qpump stress test: 5 coins, 30 trading wallets, concurrent batched rounds ==
+  [PASS] GetStats query succeeds at baseline -- {'holderEntries': 0, 'totalLaunched': 0, 'totalGraduated': 0, 'totalRefunded': 0, 'totalVolume': 0, 'shareholderPot': 0, 'burnPot': 0, 'qdogePot': 0, 'totalQuToQdoge': 0, 'totalQdogeBought': 0, 'feeReserve': 10000000000, 'totalDividends': 0, 'totalBurned': 0, 'wallets': 0, 'liveCoins': 0, 'graduatedRecords': 0}
+
+== Phase 0: launch all 5 coins ==
+  . CreateCoin(ROCKET) by CREATOR_ROCKET (tick 71500122)
+      tx: dsanepfqsthdmgndwlemylpaysubqwyslilcasrgjguktrwwcawqlqtgthug  (localhost/tx/dsanepfqsthdmgndwlemylpaysubqwyslilcasrgjguktrwwcawqlqtgthug)
+  [PASS] ROCKET created, status OPENING -- {'creator': 'BIFHOIJELGDJSCPIFAACZWUIJSPCUODLMSNODGRWLGGTYJEANKMVLZWEXAQG', 'coinId': 1, 'name': 92656592179026, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500122, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0}
+  . CreateCoin(SHIBA) by CREATOR_SHIBA (tick 71500150)
+      tx: wvlssuinpwildaxftdqxcgvzaajacvemaxohhmmoafoggonqfeptoouebxrg  (localhost/tx/wvlssuinpwildaxftdqxcgvzaajacvemaxohhmmoafoggonqfeptoouebxrg)
+  [PASS] SHIBA created, status OPENING -- {'creator': 'HBCPTURBNRZTYGOUYWUKGDRWOWKAOFSFMUHTBCQKEEUBJQDFGBFNGHABQDMG', 'coinId': 2, 'name': 280284973139, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500150, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0}
+  . CreateCoin(FLOKI) by CREATOR_FLOKI (tick 71500178)
+      tx: kqwijbumwuqtgcdwqknsogacjttasupqoujaftduhfxwzokttbqedizeqxmj  (localhost/tx/kqwijbumwuqtgcdwqknsogacjttasupqoujaftduhfxwzokttbqedizeqxmj)
+  [PASS] FLOKI created, status OPENING -- {'creator': 'POURPLLDDMTHDAEOYQVVQHPVNDVCRDPEUPRZBAXEGAXNWEGIFVQSSAOCZXLJ', 'coinId': 3, 'name': 314796100678, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500178, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0}
+  . CreateCoin(RUGGED) by CREATOR_RUGGED (tick 71500206)
+      tx: qpybvodvqlqjwcoqoibaeghdqfofozuyhyluvjarnadfcmmujzhuuwwdgxqc  (localhost/tx/qpybvodvqlqjwcoqoibaeghdqfofozuyhyluvjarnadfcmmujzhuuwwdgxqc)
+  [PASS] RUGGED created, status OPENING -- {'creator': 'GLYMOTZLIHWEXEWUFVPMBYDFAOBBQADVGIDODDGPCBTDKFTWIFMZNUVCMZWG', 'coinId': 4, 'name': 75064339289426, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500206, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0}
+  . CreateCoin(STEADY) by CREATOR_STEADY (tick 71500234)
+      tx: rgthxvjnpoggpfmmrseyamshyfdbjvpnbltmcjdmacqpudixizhhibwcrlzl  (localhost/tx/rgthxvjnpoggpfmmrseyamshyfdbjvpnbltmcjdmacqpudixizhhibwcrlzl)
+  [PASS] STEADY created, status OPENING -- {'creator': 'EFRTSABNFHBTBECQJUAQNULOQJPAGWVMZEWCQTQCOEADXUBMEYXSDYPDDQHH', 'coinId': 5, 'name': 98149687710803, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500234, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0}
+  . Buy(RUGGED) opening order by T04 (tick 71500262)
+      tx: ssdxoyinugwjhbsxkzwiggllafidqeyogzunufdgqatiyatfxyqbyidcyfte  (localhost/tx/ssdxoyinugwjhbsxkzwiggllafidqeyogzunufdgqatiyatfxyqbyidcyfte)
+  . Buy(RUGGED) opening order by T05 (tick 71500290)
+      tx: tnlflhxoltjukgtdourvjztyfsqacjctjmcqpcysbetrfykfmkpepreajfxn  (localhost/tx/tnlflhxoltjukgtdourvjztyfsqacjctjmcqpcysbetrfykfmkpepreajfxn)
+  [PASS] RUGGED opening batch registered both orders -- 34653465
+  . waiting for all 5 opening windows to settle (1200 ticks, ~20 min real time) ...
+  [PASS] ROCKET settled into OPEN status -- {'creator': 'BIFHOIJELGDJSCPIFAACZWUIJSPCUODLMSNODGRWLGGTYJEANKMVLZWEXAQG', 'coinId': 1, 'name': 92656592179026, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500122, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0}
+  [PASS] SHIBA settled into OPEN status -- {'creator': 'HBCPTURBNRZTYGOUYWUKGDRWOWKAOFSFMUHTBCQKEEUBJQDFGBFNGHABQDMG', 'coinId': 2, 'name': 280284973139, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500150, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0}
+  [PASS] FLOKI settled into OPEN status -- {'creator': 'POURPLLDDMTHDAEOYQVVQHPVNDVCRDPEUPRZBAXEGAXNWEGIFVQSSAOCZXLJ', 'coinId': 3, 'name': 314796100678, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500178, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0}
+  [PASS] RUGGED settled into OPEN status -- {'creator': 'GLYMOTZLIHWEXEWUFVPMBYDFAOBBQADVGIDODDGPCBTDKFTWIFMZNUVCMZWG', 'coinId': 4, 'name': 75064339289426, 'realQu': 34653465, 'sold': 29236054, 'batchQu': 34653465, 'batchTokens': 29236054, 'createdTick': 71500206, 'holders': 2, 'lastTradeEpoch': 223, 'status': 2, 'gradStep': 0}
+  [PASS] STEADY settled into OPEN status -- {'creator': 'EFRTSABNFHBTBECQJUAQNULOQJPAGWVMZEWCQTQCOEADXUBMEYXSDYPDDQHH', 'coinId': 5, 'name': 98149687710803, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500234, 'holders': 0, 'lastTradeEpoch': 223, 'status': 2, 'gradStep': 0}
+  . RUGGED idle clock started at epoch 223; REFUNDING expected at epoch >= 232
+
+== Phase 1: concurrent stress-trading -- 10 wallets per coin, all landing in the same tick each round ==
+  . stress round 0: 30 concurrent buys across ['ROCKET', 'SHIBA', 'FLOKI'] (tick 71501486)
+      tx: hztpcgfpxrgivgyercfditrudewbasxbdlfrwzoypbneyfgoawecomigmepk  (localhost/tx/hztpcgfpxrgivgyercfditrudewbasxbdlfrwzoypbneyfgoawecomigmepk)
+      tx: gwxhobgbtxqrzcmzyivutiiqpvuaxyhhjbkrpimiuceurorifjelculcodde  (localhost/tx/gwxhobgbtxqrzcmzyivutiiqpvuaxyhhjbkrpimiuceurorifjelculcodde)
+      tx: xmsucwpklusulctjeunblorsxkzgxmbgrhpbjcibabkzfpdeohvuwkxgwedi  (localhost/tx/xmsucwpklusulctjeunblorsxkzgxmbgrhpbjcibabkzfpdeohvuwkxgwedi)
+      tx: uefvemjdgcmgpgferbpjybspedqfclxzovcuaubriheueydtbjcryljfldxo  (localhost/tx/uefvemjdgcmgpgferbpjybspedqfclxzovcuaubriheueydtbjcryljfldxo)
+      tx: lsfsdhonxbmujayqvhspgazasmafubjujtjjcrdyycqcbzvjfimeaetakhvi  (localhost/tx/lsfsdhonxbmujayqvhspgazasmafubjujtjjcrdyycqcbzvjfimeaetakhvi)
+      tx: jpytrvzdghslidujjnwrbhkkmygbgzhqpuabmwxfbdphwefpsrxmbrhcnzad  (localhost/tx/jpytrvzdghslidujjnwrbhkkmygbgzhqpuabmwxfbdphwefpsrxmbrhcnzad)
+      tx: voollijxylxeweuahksozymtgeqefxflovabnupbdcuyrbnpfyszpuobnjrf  (localhost/tx/voollijxylxeweuahksozymtgeqefxflovabnupbdcuyrbnpfyszpuobnjrf)
+      tx: dqqbzewddblngcdyhixdnuhzskyejnbowmhdluvwiabfwdvypgvikzfbcapk  (localhost/tx/dqqbzewddblngcdyhixdnuhzskyejnbowmhdluvwiabfwdvypgvikzfbcapk)
+      tx: dsggipotuerjsavgsrzbfsirhwpcoaxdyjdqxuqobgsoooasxkafslhdidnk  (localhost/tx/dsggipotuerjsavgsrzbfsirhwpcoaxdyjdqxuqobgsoooasxkafslhdidnk)
+      tx: jagtvubanlkvhetftxugdiifaufguwnqrgejeavsogtkydomhazhlifaojia  (localhost/tx/jagtvubanlkvhetftxugdiifaufguwnqrgejeavsogtkydomhazhlifaojia)
+      tx: meczzupindxpxccuiyqzbeqhovxckmtrvrnbxlkrofnyipigqpzcicjarlqc  (localhost/tx/meczzupindxpxccuiyqzbeqhovxckmtrvrnbxlkrofnyipigqpzcicjarlqc)
+      tx: ltpzxsgwaqhoqelofdxfpykncxnbfbgzkdmruirmqggysnpuznjzkyehoggn  (localhost/tx/ltpzxsgwaqhoqelofdxfpykncxnbfbgzkdmruirmqggysnpuznjzkyehoggn)
+      tx: jijvasavxobpmcsvqmgzupturmaapjtxcmgnqyvlkdkyymfttmfgaojctchb  (localhost/tx/jijvasavxobpmcsvqmgzupturmaapjtxcmgnqyvlkdkyymfttmfgaojctchb)
+      tx: aaowfqwcdjcmucddhziyyqwqesqgduosgqmizjfgderigznldoapwfuerecg  (localhost/tx/aaowfqwcdjcmucddhziyyqwqesqgduosgqmizjfgderigznldoapwfuerecg)
+      tx: xpwulbglehynggpvvjxnpxzazmqakavxotkfcefzdhtptyypdthtcgeblrfd  (localhost/tx/xpwulbglehynggpvvjxnpxzazmqakavxotkfcefzdhtptyypdthtcgeblrfd)
+      tx: xmvttovcgnvawbcpsxyvvtrijnbcofukdakbwjfdzcjufzinltpgggkcthbl  (localhost/tx/xmvttovcgnvawbcpsxyvvtrijnbcofukdakbwjfdzcjufzinltpgggkcthbl)
+      tx: fmqhabqrlxufbdtdzjqeycbxqzudurvfmazsdnlhdcfjupywpppkqddfkkmn  (localhost/tx/fmqhabqrlxufbdtdzjqeycbxqzudurvfmazsdnlhdcfjupywpppkqddfkkmn)
+      tx: iwrnhgfurxtjoexxfvorpkmwwmhdkapuflvdxbpbscplkjmakitpdlrauwif  (localhost/tx/iwrnhgfurxtjoexxfvorpkmwwmhdkapuflvdxbpbscplkjmakitpdlrauwif)
+      tx: egnmxtfzgtlazfmdvovxchuybpladihnxrvseslitfybntuotkpvdeogrzzi  (localhost/tx/egnmxtfzgtlazfmdvovxchuybpladihnxrvseslitfybntuotkpvdeogrzzi)
+      tx: zbodklgfdchjtbmwsmnwkvexpuggomqnvcnwtnwztgagkxgwtqatwndhcsro  (localhost/tx/zbodklgfdchjtbmwsmnwkvexpuggomqnvcnwtnwztgagkxgwtqatwndhcsro)
+      tx: nipchudvneusnddxvlplcgvapkoctbtdmzvgokowjbbwcwmwbrcneksadahl  (localhost/tx/nipchudvneusnddxvlplcgvapkoctbtdmzvgokowjbbwcwmwbrcneksadahl)
+      tx: vphbypibklanifxdsziatfnpsycegivbvnuttivpggiartqzzmzcgipgvbog  (localhost/tx/vphbypibklanifxdsziatfnpsycegivbvnuttivpggiartqzzmzcgipgvbog)
+      tx: izfaknukduhgecbmkrqahbhtcwudxxselyhovdzflbcsifwwechppsbbalxb  (localhost/tx/izfaknukduhgecbmkrqahbhtcwudxxselyhovdzflbcsifwwechppsbbalxb)
+      tx: xtwkjgbydldlhbgianmghtlbcyabitwstpdmuvsfhcduobwqbmjflgqdgvlb  (localhost/tx/xtwkjgbydldlhbgianmghtlbcyabitwstpdmuvsfhcduobwqbmjflgqdgvlb)
+      tx: nsyuvjrvlejsvefbfxzvwvcuxgvgufqrsmjfgreoecdkbrxtxubpoemerouc  (localhost/tx/nsyuvjrvlejsvefbfxzvwvcuxgvgufqrsmjfgreoecdkbrxtxubpoemerouc)
+      tx: roeipqsruxsoxdbyvydnaociqwafsjrjgajvdyrqtglmchuzxtzmolvaevrd  (localhost/tx/roeipqsruxsoxdbyvydnaociqwafsjrjgajvdyrqtglmchuzxtzmolvaevrd)
+      tx: lnmcdrbhbammrbxdkdtitictjfhcnseqhimqeqbnycdgyywouhfmbeoeniel  (localhost/tx/lnmcdrbhbammrbxdkdtitictjfhcnseqhimqeqbnycdgyywouhfmbeoeniel)
+      tx: kylyobywsiizpbozdqvsigtqlgughdhhffdfndoqdefztkfsejjxcbrginvj  (localhost/tx/kylyobywsiizpbozdqvsigtqlgughdhhffdfndoqdefztkfsejjxcbrginvj)
+      tx: lvpxtyfuqrkelcdjewlswjbtpcjdvzhzqmaonyjtfekkgtvnbjkrjhwcvuzn  (localhost/tx/lvpxtyfuqrkelcdjewlswjbtpcjdvzhzqmaonyjtfekkgtvnbjkrjhwcvuzn)
+      tx: guflysabervzpajuttzsgavoxkaalvsupxcfratbqdinmfddzcxgpizcqkti  (localhost/tx/guflysabervzpajuttzsgavoxkaalvsupxcfratbqdinmfddzcxgpizcqkti)
+  . stress round 1: 30 concurrent buys across ['ROCKET', 'SHIBA', 'FLOKI'] (tick 71501514)
+      tx: popqolfkwjjnhawbzedfilcxembglnypdvgbcjgechaitnpephkcqzcdodzn  (localhost/tx/popqolfkwjjnhawbzedfilcxembglnypdvgbcjgechaitnpephkcqzcdodzn)
+      tx: cahccuvbubjojfzzmgwjxsrdkokcaaoxmhvhaknvhhbpajxlbiyfybsddgae  (localhost/tx/cahccuvbubjojfzzmgwjxsrdkokcaaoxmhvhaknvhhbpajxlbiyfybsddgae)
+      tx: waeabghldgwwmayzhrboqwdqfsifdzrnatlmazhhzbjczwmtugsbrazbkvag  (localhost/tx/waeabghldgwwmayzhrboqwdqfsifdzrnatlmazhhzbjczwmtugsbrazbkvag)
+      tx: tnxxytjofjwkmdqhknnxbddpzsybgwhqmnfakpjfwewgoolzdmqssmldehro  (localhost/tx/tnxxytjofjwkmdqhknnxbddpzsybgwhqmnfakpjfwewgoolzdmqssmldehro)
+      tx: gqdrwwhqukiijfyvuzfljaulgafercirblsyzjvrbafnxmdhoakqmvxadpzf  (localhost/tx/gqdrwwhqukiijfyvuzfljaulgafercirblsyzjvrbafnxmdhoakqmvxadpzf)
+      tx: yvwjurvscbwfhfyqtscstjhxqibdhqzsyvzbsfmqmcfpfjgulzizsgoaxgec  (localhost/tx/yvwjurvscbwfhfyqtscstjhxqibdhqzsyvzbsfmqmcfpfjgulzizsgoaxgec)
+      tx: odnlycxewvutvcaifdqiizvknzabvpysbgejdvrcweypuaqsdhasopublmbk  (localhost/tx/odnlycxewvutvcaifdqiizvknzabvpysbgejdvrcweypuaqsdhasopublmbk)
+      tx: vquriwbaqescvgnktdcxmdnutirfohbglzpwjpstwczkaipruanovtqbxivd  (localhost/tx/vquriwbaqescvgnktdcxmdnutirfohbglzpwjpstwczkaipruanovtqbxivd)
+      tx: blpjghbgpwhyeeuxgklvelibobvfrcjvwojjanesodtorsvykpsyhqbckxql  (localhost/tx/blpjghbgpwhyeeuxgklvelibobvfrcjvwojjanesodtorsvykpsyhqbckxql)
+      tx: llnkdedjkobeoewigxwwefrtfdvalibzpykzjitvfdmvpxpjqellggecknbj  (localhost/tx/llnkdedjkobeoewigxwwefrtfdvalibzpykzjitvfdmvpxpjqellggecknbj)
+      tx: zmzcktnedugfahxhduzhmkjoepgbcfdsogmwuojmbbphyfxkymgnuczfbfte  (localhost/tx/zmzcktnedugfahxhduzhmkjoepgbcfdsogmwuojmbbphyfxkymgnuczfbfte)
+      tx: mltkymnbjfbgwdcnoekevtxdoaahojmnrqbkbfgqmazsetmpgshhmapbuibc  (localhost/tx/mltkymnbjfbgwdcnoekevtxdoaahojmnrqbkbfgqmazsetmpgshhmapbuibc)
+      tx: xbwlvmmrdvdcoaooyyyxegoqqzcgpvimrabanerubdkkhjrbuwavsgsbtyga  (localhost/tx/xbwlvmmrdvdcoaooyyyxegoqqzcgpvimrabanerubdkkhjrbuwavsgsbtyga)
+      tx: uhcqrfvgiiufcfuyjhzlhfjopdkddzseuvcdjotwxfaxesstkrcnjqsantcg  (localhost/tx/uhcqrfvgiiufcfuyjhzlhfjopdkddzseuvcdjotwxfaxesstkrcnjqsantcg)
+      tx: gkecnrfnbpmzxfiyizamzmjhiksfivrovagclpjknfnbmyksupphrybaytin  (localhost/tx/gkecnrfnbpmzxfiyizamzmjhiksfivrovagclpjknfnbmyksupphrybaytin)
+      tx: fhqlcpubjqxwigakkcholgizoxqeowwbnalvprzbjbzwdeywysaswvzanpuj  (localhost/tx/fhqlcpubjqxwigakkcholgizoxqeowwbnalvprzbjbzwdeywysaswvzanpuj)
+      tx: rqqjokcthzeyjawdlfqwpgrjjctapkykjhftpzocigucacltphveifxgtqvf  (localhost/tx/rqqjokcthzeyjawdlfqwpgrjjctapkykjhftpzocigucacltphveifxgtqvf)
+      tx: civvpqahmdwqacwvzpcjafruofdfseuzysfocffaidbpegvzqkepatndcdwl  (localhost/tx/civvpqahmdwqacwvzpcjafruofdfseuzysfocffaidbpegvzqkepatndcdwl)
+      tx: actypjjbjnirfenonuktpozojtidhnjqvhrqwdpufbhoiyreakfarhvbswai  (localhost/tx/actypjjbjnirfenonuktpozojtidhnjqvhrqwdpufbhoiyreakfarhvbswai)
+      tx: tuugmimsnuiggejixchpydoqfxkavaifrizxyctemcydhixssxxhnipatygc  (localhost/tx/tuugmimsnuiggejixchpydoqfxkavaifrizxyctemcydhixssxxhnipatygc)
+      tx: erwtlbjnekvsahrhitlhglvafuuajvqsaugccacfsbfxeezunbidgflcwrio  (localhost/tx/erwtlbjnekvsahrhitlhglvafuuajvqsaugccacfsbfxeezunbidgflcwrio)
+      tx: mfeznijdzxzfqcvirxppmoxsrjxesewoaaqqxbetrbytedmudybukhxczrwc  (localhost/tx/mfeznijdzxzfqcvirxppmoxsrjxesewoaaqqxbetrbytedmudybukhxczrwc)
+      tx: rgxnvpnqmjiytezsrewhfzfuunmavhpkxbppmkkfkcbylujyznieeeseqrpi  (localhost/tx/rgxnvpnqmjiytezsrewhfzfuunmavhpkxbppmkkfkcbylujyznieeeseqrpi)
+      tx: ckxaplnswfqtdgieccdfgrzoedxfyydvvhllfbinwdgljtkmekpcmzjaxpba  (localhost/tx/ckxaplnswfqtdgieccdfgrzoedxfyydvvhllfbinwdgljtkmekpcmzjaxpba)
+      tx: dblaexzlxocmgbdpxxweyxvchgggaolerfyttjfpkhruajhfqnkqhrsbnqti  (localhost/tx/dblaexzlxocmgbdpxxweyxvchgggaolerfyttjfpkhruajhfqnkqhrsbnqti)
+      tx: mysvxopcscuhydnwmposmvkwynpgrbvhwjydbamhfaofafvigyhluzkfvkmb  (localhost/tx/mysvxopcscuhydnwmposmvkwynpgrbvhwjydbamhfaofafvigyhluzkfvkmb)
+      tx: vbzzmfbcuohlpglgbyybeivcemwftxstfndpxqarrambxrgxhlgxijugpulf  (localhost/tx/vbzzmfbcuohlpglgbyybeivcemwftxstfndpxqarrambxrgxhlgxijugpulf)
+      tx: xkxcskmfxtpuzdzvriulripapygdmoyicvxomvltrdwxxwkcrxpjlqmgdrek  (localhost/tx/xkxcskmfxtpuzdzvriulripapygdmoyicvxomvltrdwxxwkcrxpjlqmgdrek)
+      tx: fcetctjayexaffiorwmgoqokwwsdwkqezgvqaoaecevgphpivhopwhyghohb  (localhost/tx/fcetctjayexaffiorwmgoqokwwsdwkqezgvqaoaecevgphpivhopwhyghohb)
+      tx: kcuhrtqrfupwgdrdqhqabeuhvokcglntbohjhggwfcpwyokrhimwdxaceugb  (localhost/tx/kcuhrtqrfupwgdrdqhqabeuhvokcglntbohjhggwfcpwyokrhimwdxaceugb)
+  . stress round 2: 30 concurrent buys across ['ROCKET', 'SHIBA', 'FLOKI'] (tick 71501543)
+      tx: kfiujwaqjoaixfpvbwebcadrobhflfmuioqelqsjzbtzqbgdrqdwochbzbzg  (localhost/tx/kfiujwaqjoaixfpvbwebcadrobhflfmuioqelqsjzbtzqbgdrqdwochbzbzg)
+      tx: ryenfxabtgcilbsjtvmjfsgvshehpajtxdqpbymizdccfkvvrdkbirqexxle  (localhost/tx/ryenfxabtgcilbsjtvmjfsgvshehpajtxdqpbymizdccfkvvrdkbirqexxle)
+      tx: wbcnisorqrckeetfystlfeitdndcvmsnwmmbsxajpeveuiuaomvjrfickobi  (localhost/tx/wbcnisorqrckeetfystlfeitdndcvmsnwmmbsxajpeveuiuaomvjrfickobi)
+      tx: hephnlqrmbmiuccvsqcjplcempigxxntbubwhdolbhqlyapclsnivxsblunc  (localhost/tx/hephnlqrmbmiuccvsqcjplcempigxxntbubwhdolbhqlyapclsnivxsblunc)
+      tx: qvlybctuvqdxlagxfspjikumswhddfoyenjyaqlohfycffupxdofilkcdvmj  (localhost/tx/qvlybctuvqdxlagxfspjikumswhddfoyenjyaqlohfycffupxdofilkcdvmj)
+      tx: lauwhytuqjbkvezztucaokeyqdddmawcfbwvvxbhfdyrutktkkbzppnbyqvj  (localhost/tx/lauwhytuqjbkvezztucaokeyqdddmawcfbwvvxbhfdyrutktkkbzppnbyqvj)
+      tx: fjdhpruqynmwvfwrtemsevrtcibeufrphyhgrvybxfdlfsxazzyumcrewdef  (localhost/tx/fjdhpruqynmwvfwrtemsevrtcibeufrphyhgrvybxfdlfsxazzyumcrewdef)
+      tx: dzvsyjzfovrfjclmdmauzlmzddmdpsmqaldvriirhhuxmtyxnxmkxfaekxgo  (localhost/tx/dzvsyjzfovrfjclmdmauzlmzddmdpsmqaldvriirhhuxmtyxnxmkxfaekxgo)
+      tx: zghynmycxfcxxcefvctfevzzdxicyltybqunacehoejfghnhufjqwxbeoohd  (localhost/tx/zghynmycxfcxxcefvctfevzzdxicyltybqunacehoejfghnhufjqwxbeoohd)
+      tx: xgfvbfmgpvelsabygjijizvpkqxgeizlyahukufhobgpuyidqnqkidtbpail  (localhost/tx/xgfvbfmgpvelsabygjijizvpkqxgeizlyahukufhobgpuyidqnqkidtbpail)
+      tx: ssdakuzxyphzmcpflazwxxekwvbgsugltbzvrivtbcvqpxkdjwjqbtoawunf  (localhost/tx/ssdakuzxyphzmcpflazwxxekwvbgsugltbzvrivtbcvqpxkdjwjqbtoawunf)
+      tx: xskolfwcbtlvycgihacnhhjakjnahqvygmltgygujhvdskuwvllwzndbvvwm  (localhost/tx/xskolfwcbtlvycgihacnhhjakjnahqvygmltgygujhvdskuwvllwzndbvvwm)
+      tx: ugvzfhyjfcemleqwrgoxwuxvlbqdwawagyezftapdhjcskglmlizycxdtidc  (localhost/tx/ugvzfhyjfcemleqwrgoxwuxvlbqdwawagyezftapdhjcskglmlizycxdtidc)
+      tx: rdvijjnzwprbqaikuhhkqyhhluuenbykmiztdmegrfdafcrnggojhnfhbaog  (localhost/tx/rdvijjnzwprbqaikuhhkqyhhluuenbykmiztdmegrfdafcrnggojhnfhbaog)
+      tx: iapgdbnxquguhdcpcmezylvcmuqgyvgiaaxglrlordgmfvqeomwppaxgaoia  (localhost/tx/iapgdbnxquguhdcpcmezylvcmuqgyvgiaaxglrlordgmfvqeomwppaxgaoia)
+      tx: jsjgnuxywcetdfsofnerbkowieadupdiucmpjsmdqdzcmpmsmxzkpebgrqlc  (localhost/tx/jsjgnuxywcetdfsofnerbkowieadupdiucmpjsmdqdzcmpmsmxzkpebgrqlc)
+      tx: stoczyoxokzfsfnwdmlslgfbohihfbhzcyxpxqncqcoqokdprmjzkftaztxm  (localhost/tx/stoczyoxokzfsfnwdmlslgfbohihfbhzcyxpxqncqcoqokdprmjzkftaztxm)
+      tx: njfaiotnjvalehydxavixopjsrmanqzyedrgmafcqcbmnwxdmgbynjqfxgtj  (localhost/tx/njfaiotnjvalehydxavixopjsrmanqzyedrgmafcqcbmnwxdmgbynjqfxgtj)
+      tx: mlowmewauvduparpexoibptsrhlhjvrwbfcqvockubmrmzdnuippocofmiod  (localhost/tx/mlowmewauvduparpexoibptsrhlhjvrwbfcqvockubmrmzdnuippocofmiod)
+      tx: ialvjlacpauipeguehaelsabeppdqlscuwlzgfvyzeousdelcecejnfeimhh  (localhost/tx/ialvjlacpauipeguehaelsabeppdqlscuwlzgfvyzeousdelcecejnfeimhh)
+      tx: lrybfyxjaplbkgrjbcbgrahrsktbrvxvlczrtaahsflnzlgtpphgdmrdbtbi  (localhost/tx/lrybfyxjaplbkgrjbcbgrahrsktbrvxvlczrtaahsflnzlgtpphgdmrdbtbi)
+      tx: ijymrbrujhtgucepuhdnfgzfxqzefmukofzbdefyeeiwnhvwvbkkyvsgxhvd  (localhost/tx/ijymrbrujhtgucepuhdnfgzfxqzefmukofzbdefyeeiwnhvwvbkkyvsgxhvd)
+      tx: gyzdldtyeoqffeomackjahxyduredflstfexbvdiocrfdhormjsudpjgyfrf  (localhost/tx/gyzdldtyeoqffeomackjahxyduredflstfexbvdiocrfdhormjsudpjgyfrf)
+      tx: cnwxvyzhvzfysbpkpvneovmyxmubrflohmipaxyuhetneecszoerdwqehegd  (localhost/tx/cnwxvyzhvzfysbpkpvneovmyxmubrflohmipaxyuhetneecszoerdwqehegd)
+      tx: hocazvsbxhfkafllsoulurzcwoncuzwpwshxuybqygzegdowlfgrpheeyvbi  (localhost/tx/hocazvsbxhfkafllsoulurzcwoncuzwpwshxuybqygzegdowlfgrpheeyvbi)
+      tx: jahwljlvwrejihnagptunycuxgafzqraecjmvkkrvbbljpcwrpprakccbyib  (localhost/tx/jahwljlvwrejihnagptunycuxgafzqraecjmvkkrvbbljpcwrpprakccbyib)
+      tx: cnrodrkllgsnxddazpqluiemofyatqkvoevgjodhgahzjmbralnekpadlied  (localhost/tx/cnrodrkllgsnxddazpqluiemofyatqkvoevgjodhgahzjmbralnekpadlied)
+      tx: kfpkdposasbplbkonfmabrjpnopgfuubfxdfyvlpaeuthblgbeoagirgtkin  (localhost/tx/kfpkdposasbplbkonfmabrjpnopgfuubfxdfyvlpaeuthblgbeoagirgtkin)
+      tx: sovazmvilualzblrbqsnzupqzvhejqkbdfeupauppbqeipyhmoqcxuwfnftg  (localhost/tx/sovazmvilualzblrbqsnzupqzvhejqkbdfeupauppbqeipyhmoqcxuwfnftg)
+      tx: vezeztmovfkfmeybalfyzixlfxnabvvjlbnxohlvydylavvgchyxrfeerhkm  (localhost/tx/vezeztmovfkfmeybalfyzixlfxnabvvjlbnxohlvydylavvgchyxrfeerhkm)
+  . stress round 3: 30 concurrent buys across ['ROCKET', 'SHIBA', 'FLOKI'] (tick 71501571)
+      tx: ubxihitgmeekhajezxifiyrxtpjeyngkfqykhudxuczqhxwzxlrkrkqectse  (localhost/tx/ubxihitgmeekhajezxifiyrxtpjeyngkfqykhudxuczqhxwzxlrkrkqectse)
+      tx: wsxqjtzaybhxggwhvbsukcwaruedoyniiqfbbmcdocjzfdbmfkmzsojefcfg  (localhost/tx/wsxqjtzaybhxggwhvbsukcwaruedoyniiqfbbmcdocjzfdbmfkmzsojefcfg)
+      tx: xlllpmqyndlubaailyvtwvohjkrgxvspxhnfzlbrpbznueahdtayqmydqhwk  (localhost/tx/xlllpmqyndlubaailyvtwvohjkrgxvspxhnfzlbrpbznueahdtayqmydqhwk)
+      tx: xpxqdaficmphdgxwrmlcanctzfedydekoxbtnkovnfhpbexagnacaidbocij  (localhost/tx/xpxqdaficmphdgxwrmlcanctzfedydekoxbtnkovnfhpbexagnacaidbocij)
+      tx: rlnukpjbmdejgdzuwjttvzjmesvaxzwvjziqpokgcaxhxkzzfinhcaddkqtc  (localhost/tx/rlnukpjbmdejgdzuwjttvzjmesvaxzwvjziqpokgcaxhxkzzfinhcaddkqtc)
+      tx: tlhzzxmdkuvbqerdwqsnzfmlqevewzfrdbnsbbgejhbdtsaqnhzziaefvnbg  (localhost/tx/tlhzzxmdkuvbqerdwqsnzfmlqevewzfrdbnsbbgejhbdtsaqnhzziaefvnbg)
+      tx: jtiitjxmledspcaqlzahvlgkwoqdsxyxfpyqcalkheaynnnpnktqmiwbkygf  (localhost/tx/jtiitjxmledspcaqlzahvlgkwoqdsxyxfpyqcalkheaynnnpnktqmiwbkygf)
+      tx: nglreguyzsrnrdmyvifqzxeqkztgqbeyiubpqmfxcdkuaqsjiqdzpgdgelsf  (localhost/tx/nglreguyzsrnrdmyvifqzxeqkztgqbeyiubpqmfxcdkuaqsjiqdzpgdgelsf)
+      tx: shcgookgozsotadortznmhimhccfoeobftmqdgfrvdsbyhkeywdafbogqhog  (localhost/tx/shcgookgozsotadortznmhimhccfoeobftmqdgfrvdsbyhkeywdafbogqhog)
+      tx: tqxriqqicltiqblzjmxjxxqkraaatlvsfcokjpeohercksvjyrgfkpwclyff  (localhost/tx/tqxriqqicltiqblzjmxjxxqkraaatlvsfcokjpeohercksvjyrgfkpwclyff)
+      tx: bgrvbxabyuvyhbvifiqeujigmazenbzexyxifcewxcoxmumwdsarbxocizwl  (localhost/tx/bgrvbxabyuvyhbvifiqeujigmazenbzexyxifcewxcoxmumwdsarbxocizwl)
+      tx: yqxsktuwrestedsboukbujzvaazbdjmfflceokkzodqrjerbwgzxfprdenvj  (localhost/tx/yqxsktuwrestedsboukbujzvaazbdjmfflceokkzodqrjerbwgzxfprdenvj)
+      tx: lmldpuwhtvnwhebykiafiguxbyfazgexeeqrlriiwahzkfimtemusjcdsano  (localhost/tx/lmldpuwhtvnwhebykiafiguxbyfazgexeeqrlriiwahzkfimtemusjcdsano)
+      tx: lvrcohsmtidbvgmgssiakcgonntewfvysnugnouezczdrynuaalatekcmntd  (localhost/tx/lvrcohsmtidbvgmgssiakcgonntewfvysnugnouezczdrynuaalatekcmntd)
+      tx: jomnvcjwfwfgvcumoywraknjirqdtcjtvouwrzjaceatpdhvdldxpotbzsmc  (localhost/tx/jomnvcjwfwfgvcumoywraknjirqdtcjtvouwrzjaceatpdhvdldxpotbzsmc)
+      tx: hhsdexnpuntvxbkbraqjiwihxfzfxbmzqsyyfdkiaecqpbvihkntewwgfqqn  (localhost/tx/hhsdexnpuntvxbkbraqjiwihxfzfxbmzqsyyfdkiaecqpbvihkntewwgfqqn)
+      tx: rhcmetuvkxcqxbqggvzdqzrwoxfcghkbolntkskondhncfhuckjahgncenab  (localhost/tx/rhcmetuvkxcqxbqggvzdqzrwoxfcghkbolntkskondhncfhuckjahgncenab)
+      tx: rfzvurzrfxhyzgeraskepbzobdxcrgulkdtfzoxkoecwlrzzcwdunbkbeqkk  (localhost/tx/rfzvurzrfxhyzgeraskepbzobdxcrgulkdtfzoxkoecwlrzzcwdunbkbeqkk)
+      tx: jadgjymrtwajkhetovztvusjuqidqnaocnjjykphjhqejenjagwhdjddxdid  (localhost/tx/jadgjymrtwajkhetovztvusjuqidqnaocnjjykphjhqejenjagwhdjddxdid)
+      tx: ymppqvegntltmbiilrbvmyxcxmhgyeaalqdjumjrcemyliiiitckasxaecxl  (localhost/tx/ymppqvegntltmbiilrbvmyxcxmhgyeaalqdjumjrcemyliiiitckasxaecxl)
+      tx: fpfhjlzeihmryakexjgxazgohejeafcbpllfzswsvdcbiwnqxcvgykfalbph  (localhost/tx/fpfhjlzeihmryakexjgxazgohejeafcbpllfzswsvdcbiwnqxcvgykfalbph)
+      tx: rrxpcpsbghyigfcnxofbfwrhxrydiecrlhuaktsfwfcahwfxrbexjtndjvtk  (localhost/tx/rrxpcpsbghyigfcnxofbfwrhxrydiecrlhuaktsfwfcahwfxrbexjtndjvtk)
+      tx: pdvkviecvwheyakedqhckospfplcnodorovpnlgdyaisbmvtwerordwawacl  (localhost/tx/pdvkviecvwheyakedqhckospfplcnodorovpnlgdyaisbmvtwerordwawacl)
+      tx: uwbybkxwzofomcbbjljwvruaztvdzipmpsnxdjjyhbywxyeumbqoulzghwtf  (localhost/tx/uwbybkxwzofomcbbjljwvruaztvdzipmpsnxdjjyhbywxyeumbqoulzghwtf)
+      tx: hmoyavrchftztcmqdofzrgwtdstfibuqklrasacuidlgzblsscqpblxeuipb  (localhost/tx/hmoyavrchftztcmqdofzrgwtdstfibuqklrasacuidlgzblsscqpblxeuipb)
+      tx: rfpsxywqkfumtaadlgkkykixvmacvwqsqqesnadivgwvypjlquuuecjhjiak  (localhost/tx/rfpsxywqkfumtaadlgkkykixvmacvwqsqqesnadivgwvypjlquuuecjhjiak)
+      tx: mxkiicokqvluscgijfxjejvdzxvgvgnkngamrhickgpcubjtwffkgnletxga  (localhost/tx/mxkiicokqvluscgijfxjejvdzxvgvgnkngamrhickgpcubjtwffkgnletxga)
+      tx: iorwvsdecredsgtkwvedavwbbyycpdfgxzrgctxwhfznlxqgucuchekdpuea  (localhost/tx/iorwvsdecredsgtkwvedavwbbyycpdfgxzrgctxwhfznlxqgucuchekdpuea)
+      tx: jlzghkipofatwaentwthvjekpudcguapgpmiitoucbspgyndkscfmpnczbfh  (localhost/tx/jlzghkipofatwaentwthvjekpudcguapgpmiitoucbspgyndkscfmpnczbfh)
+      tx: dtimciddwpldpfiawfmrjhlbydhhmxbpwhbgpxwpccmxelwhmoyjacegzlim  (localhost/tx/dtimciddwpldpfiawfmrjhlbydhhmxbpwhbgpxwpccmxelwhmoyjacegzlim)
+  . all 3 pass-coins reached COMPLETE after 4 rounds
+  . ROCKET after stress rounds: status=DISTRIBUTING sold=710000000
+  . SHIBA after stress rounds: status=EMPTY sold=0
+  . FLOKI after stress rounds: status=EMPTY sold=0
+  [PASS] Concurrent stress trading pushed real volume through the contract (120 buy transactions) -- round_tx_count=120
+
+== Phase 2: wait for ROCKET/SHIBA/FLOKI to reach COMPLETE and auto-graduate ==
+  [PASS] ROCKET reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  [PASS] SHIBA reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  [PASS] FLOKI reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  [PASS] ROCKET fully closed via real graduation (not pool-fallback) -- {'coinId': 1, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0}
+  [PASS] ROCKET: a real majority of its 10 concurrent traders received actual QX-managed shares -- paid=10/10
+  [PASS] SHIBA fully closed via real graduation (not pool-fallback) -- {'coinId': 2, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0}
+  [PASS] SHIBA: a real majority of its 10 concurrent traders received actual QX-managed shares -- paid=10/10
+  [PASS] FLOKI fully closed via real graduation (not pool-fallback) -- {'coinId': 3, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0}
+  [PASS] FLOKI: a real majority of its 10 concurrent traders received actual QX-managed shares -- paid=10/10
+
+== Phase 3: wait for RUGGED's 9-epoch idle timeout, poking STEADY with small trades every epoch ==
+  . epoch 223: RUGGED status=OPEN (idle for 0/9 epochs)
+  . STEADY continuous-activity poke #0 by T03 (tick 71501635)
+      tx: bvjpdacfdzoqecphncxexavqihudiyzagglloocfrcjsssygfcfsafxebjdm  (localhost/tx/bvjpdacfdzoqecphncxexavqihudiyzagglloocfrcjsssygfcfsafxebjdm)
+  . waiting for natural epoch transition (currently 223)...
+  . epoch 224: RUGGED status=OPEN (idle for 1/9 epochs)
+  . STEADY continuous-activity poke #1 by T04 (tick 71502911)
+      tx: saubvmopbehbzeigtbkrvnblayldcevpsbvivyiaofqzvuhnmsgamucbkdzf  (localhost/tx/saubvmopbehbzeigtbkrvnblayldcevpsbvivyiaofqzvuhnmsgamucbkdzf)
+  . waiting for natural epoch transition (currently 224)...
+  . epoch 225: RUGGED status=OPEN (idle for 2/9 epochs)
+  . STEADY continuous-activity poke #2 by T05 (tick 71504652)
+      tx: hxeuwlvixxeqabdevsvreknsfjtcxemvnwhhipfplaprymnkhvfvhwpbkrjl  (localhost/tx/hxeuwlvixxeqabdevsvreknsfjtcxemvnwhhipfplaprymnkhvfvhwpbkrjl)
+  . waiting for natural epoch transition (currently 225)...
+  . epoch 226: RUGGED status=OPEN (idle for 3/9 epochs)
+  . STEADY continuous-activity poke #3 by T03 (tick 71505725)
+      tx: sewaveyngauhfftcgagflwwvrolenupqzxfttowhfawtagwzsslimhcbytic  (localhost/tx/sewaveyngauhfftcgagflwwvrolenupqzxfttowhfawtagwzsslimhcbytic)
+  . waiting for natural epoch transition (currently 226)...
+  . epoch 227: RUGGED status=OPEN (idle for 4/9 epochs)
+  . STEADY continuous-activity poke #4 by T04 (tick 71507119)
+      tx: evfpbdcksjoujazblguapfuseueeqczujvlbdqltscvxycxzhlgmucycxkgm  (localhost/tx/evfpbdcksjoujazblguapfuseueeqczujvlbdqltscvxycxzhlgmucycxkgm)
+  . waiting for natural epoch transition (currently 227)...
+  . epoch 228: RUGGED status=OPEN (idle for 5/9 epochs)
+  . STEADY continuous-activity poke #5 by T05 (tick 71508507)
+      tx: ragokdghdnnsrdgmyggyljgvtbfheistufrbzyffggxgixbtttucowbfxyun  (localhost/tx/ragokdghdnnsrdgmyggyljgvtbfheistufrbzyffggxgixbtttucowbfxyun)
+  . waiting for natural epoch transition (currently 228)...
+  . epoch 229: RUGGED status=OPEN (idle for 6/9 epochs)
+  . STEADY continuous-activity poke #6 by T03 (tick 71509923)
+      tx: hoakchjcltablbhulgoexyvdgcwdouzzpldrflvoqfcambboykiynemehnko  (localhost/tx/hoakchjcltablbhulgoexyvdgcwdouzzpldrflvoqfcambboykiynemehnko)
+  . waiting for natural epoch transition (currently 229)...
+  . epoch 230: RUGGED status=OPEN (idle for 7/9 epochs)
+  . STEADY continuous-activity poke #7 by T04 (tick 71511573)
+      tx: hltecwumbyuxggvaccbnlyovzmyeedwlhwjvcbsyachavrrjergslmyfffmc  (localhost/tx/hltecwumbyuxggvaccbnlyovzmyeedwlhwjvcbsyachavrrjergslmyfffmc)
+  . waiting for natural epoch transition (currently 230)...
+  . epoch 231: RUGGED status=OPEN (idle for 8/9 epochs)
+  . STEADY continuous-activity poke #8 by T05 (tick 71512720)
+      tx: tyblpnaswqnrbcrdcdvrynulqjwbzjpvpnvsahhawaowccjeubgvydrduxhj  (localhost/tx/tyblpnaswqnrbcrdcdvrynulqjwbzjpvpnvsahhawaowccjeubgvydrduxhj)
+  . waiting for natural epoch transition (currently 231)...
+  . epoch 232: RUGGED status=EMPTY (idle for 9/9 epochs)
+  . STEADY continuous-activity poke #9 by T03 (tick 71514135)
+      tx: ortjbxpfamatxcdinsvijhmfwvydgqhstkkdykjzkdiphqgqtbqxdphgjplj  (localhost/tx/ortjbxpfamatxcdinsvijhmfwvydgqhstkkdykjzkdiphqgqtbqxdphgjplj)
+  [PASS] RUGGED entered REFUNDING (or already fully refunded+closed) after the idle timeout -- {'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 0, 'holders': 0, 'lastTradeEpoch': 0, 'status': 0, 'gradStep': 0}, 'record': {'coinId': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'poolFallback': 0}, 'found': False, 'graduated': False, 'statusName': 'EMPTY'}
+  . waiting for automatic per-holder refund delivery to fully drain and close RUGGED ...
+  [PASS] RUGGED fully closed via the refund path (not graduated) -- {'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 0, 'holders': 0, 'lastTradeEpoch': 0, 'status': 0, 'gradStep': 0}, 'record': {'coinId': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'poolFallback': 0}, 'found': False, 'graduated': False, 'statusName': 'EMPTY'}
+  [PASS] T04 received a nonzero pro-rata QU refund from RUGGED -- before=420236616 after=439114036
+  [PASS] T05 received a nonzero pro-rata QU refund from RUGGED -- before=404752108 after=418675577
+
+== Phase 4: confirm STEADY's continuous small activity never came close to completing its curve ==
+  [PASS] STEADY absorbed 10 discrete small trades over the run and is still OPEN -- status=OPEN sold=3000000
+  [PASS] STEADY's curve is nowhere near complete (far under the full 710,000,000 supply) -- sold=3000000 (supply=710000000)
+
+== Final aggregate stats ==
+  . totalLaunched=5 totalGraduated=3 totalRefunded=1 totalVolume=11752710567 liveCoins=1 wallets=3
+  [PASS] Exactly 5 coins were launched this run -- 5
+  [PASS] Exactly 3 coins graduated this run (ROCKET/SHIBA/FLOKI) -- 3
+  [PASS] Exactly 1 coin refunded this run (RUGGED) -- 1
+  [PASS] Exactly 1 coin still live at the end (STEADY) -- 1
+
+========================================================================
+
+========================================================================
+  PASS  GetStats query succeeds at baseline  ({'holderEntries': 0, 'totalLaunched': 0, 'totalGraduated': 0, 'totalRefunded': 0, 'totalVolume': 0, 'shareholderPot': 0, 'burnPot': 0, 'qdogePot': 0, 'totalQuToQdoge': 0, 'totalQdogeBought': 0, 'feeReserve': 10000000000, 'totalDividends': 0, 'totalBurned': 0, 'wallets': 0, 'liveCoins': 0, 'graduatedRecords': 0})
+  PASS  ROCKET created, status OPENING  ({'creator': 'BIFHOIJELGDJSCPIFAACZWUIJSPCUODLMSNODGRWLGGTYJEANKMVLZWEXAQG', 'coinId': 1, 'name': 92656592179026, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500122, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0})
+  PASS  SHIBA created, status OPENING  ({'creator': 'HBCPTURBNRZTYGOUYWUKGDRWOWKAOFSFMUHTBCQKEEUBJQDFGBFNGHABQDMG', 'coinId': 2, 'name': 280284973139, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500150, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0})
+  PASS  FLOKI created, status OPENING  ({'creator': 'POURPLLDDMTHDAEOYQVVQHPVNDVCRDPEUPRZBAXEGAXNWEGIFVQSSAOCZXLJ', 'coinId': 3, 'name': 314796100678, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500178, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0})
+  PASS  RUGGED created, status OPENING  ({'creator': 'GLYMOTZLIHWEXEWUFVPMBYDFAOBBQADVGIDODDGPCBTDKFTWIFMZNUVCMZWG', 'coinId': 4, 'name': 75064339289426, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500206, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0})
+  PASS  STEADY created, status OPENING  ({'creator': 'EFRTSABNFHBTBECQJUAQNULOQJPAGWVMZEWCQTQCOEADXUBMEYXSDYPDDQHH', 'coinId': 5, 'name': 98149687710803, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500234, 'holders': 0, 'lastTradeEpoch': 222, 'status': 1, 'gradStep': 0})
+  PASS  RUGGED opening batch registered both orders  (34653465)
+  PASS  ROCKET settled into OPEN status  ({'creator': 'BIFHOIJELGDJSCPIFAACZWUIJSPCUODLMSNODGRWLGGTYJEANKMVLZWEXAQG', 'coinId': 1, 'name': 92656592179026, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500122, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0})
+  PASS  SHIBA settled into OPEN status  ({'creator': 'HBCPTURBNRZTYGOUYWUKGDRWOWKAOFSFMUHTBCQKEEUBJQDFGBFNGHABQDMG', 'coinId': 2, 'name': 280284973139, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500150, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0})
+  PASS  FLOKI settled into OPEN status  ({'creator': 'POURPLLDDMTHDAEOYQVVQHPVNDVCRDPEUPRZBAXEGAXNWEGIFVQSSAOCZXLJ', 'coinId': 3, 'name': 314796100678, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500178, 'holders': 0, 'lastTradeEpoch': 222, 'status': 2, 'gradStep': 0})
+  PASS  RUGGED settled into OPEN status  ({'creator': 'GLYMOTZLIHWEXEWUFVPMBYDFAOBBQADVGIDODDGPCBTDKFTWIFMZNUVCMZWG', 'coinId': 4, 'name': 75064339289426, 'realQu': 34653465, 'sold': 29236054, 'batchQu': 34653465, 'batchTokens': 29236054, 'createdTick': 71500206, 'holders': 2, 'lastTradeEpoch': 223, 'status': 2, 'gradStep': 0})
+  PASS  STEADY settled into OPEN status  ({'creator': 'EFRTSABNFHBTBECQJUAQNULOQJPAGWVMZEWCQTQCOEADXUBMEYXSDYPDDQHH', 'coinId': 5, 'name': 98149687710803, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 71500234, 'holders': 0, 'lastTradeEpoch': 223, 'status': 2, 'gradStep': 0})
+  PASS  Concurrent stress trading pushed real volume through the contract (120 buy transactions)  (round_tx_count=120)
+  PASS  ROCKET reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  PASS  SHIBA reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  PASS  FLOKI reached COMPLETE under concurrent load (sold == full supply or already graduated)
+  PASS  ROCKET fully closed via real graduation (not pool-fallback)  ({'coinId': 1, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0})
+  PASS  ROCKET: a real majority of its 10 concurrent traders received actual QX-managed shares  (paid=10/10)
+  PASS  SHIBA fully closed via real graduation (not pool-fallback)  ({'coinId': 2, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0})
+  PASS  SHIBA: a real majority of its 10 concurrent traders received actual QX-managed shares  (paid=10/10)
+  PASS  FLOKI fully closed via real graduation (not pool-fallback)  ({'coinId': 3, 'sold': 710000000, 'poolQu': 2644898018, 'poolTokens': 264489801, 'holders': 10, 'poolFallback': 0})
+  PASS  FLOKI: a real majority of its 10 concurrent traders received actual QX-managed shares  (paid=10/10)
+  PASS  RUGGED entered REFUNDING (or already fully refunded+closed) after the idle timeout  ({'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 0, 'holders': 0, 'lastTradeEpoch': 0, 'status': 0, 'gradStep': 0}, 'record': {'coinId': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'poolFallback': 0}, 'found': False, 'graduated': False, 'statusName': 'EMPTY'})
+  PASS  RUGGED fully closed via the refund path (not graduated)  ({'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'createdTick': 0, 'holders': 0, 'lastTradeEpoch': 0, 'status': 0, 'gradStep': 0}, 'record': {'coinId': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'poolFallback': 0}, 'found': False, 'graduated': False, 'statusName': 'EMPTY'})
+  PASS  T04 received a nonzero pro-rata QU refund from RUGGED  (before=420236616 after=439114036)
+  PASS  T05 received a nonzero pro-rata QU refund from RUGGED  (before=404752108 after=418675577)
+  PASS  STEADY absorbed 10 discrete small trades over the run and is still OPEN  (status=OPEN sold=3000000)
+  PASS  STEADY's curve is nowhere near complete (far under the full 710,000,000 supply)  (sold=3000000 (supply=710000000))
+  PASS  Exactly 5 coins were launched this run  (5)
+  PASS  Exactly 3 coins graduated this run (ROCKET/SHIBA/FLOKI)  (3)
+  PASS  Exactly 1 coin refunded this run (RUGGED)  (1)
+  PASS  Exactly 1 coin still live at the end (STEADY)  (1)
+
+  32/32 passed
+
+QPUMP_STRESS_TEST_COMPLETE
