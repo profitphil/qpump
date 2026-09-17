@@ -1,0 +1,193 @@
+== Qpump live devnet test: baseline ==
+  [PASS] GetStats query succeeds at baseline -- {'holderEntries': 0, 'totalLaunched': 0, 'totalGraduated': 0, 'totalRefunded': 0, 'totalVolume': 0, 'shareholderPot': 0, 'burnPot': 0, 'qdogePot': 0, 'totalQuToQdoge': 0, 'totalQdogeBought': 0, 'feeReserve': 10000000000, 'totalDividends': 0, 'totalBurned': 0, 'wallets': 0, 'liveCoins': 0, 'graduatedRecords': 0}
+  [PASS] GetFees: launchFee matches contract constant -- 25000000
+  [PASS] GetFees: curveRaise matches contract constant -- 3905000000
+  [PASS] Independent CurveCost(0, supply) matches QPUMP_CURVE_RAISE -- 3905000000
+
+== Phase 0: launch MOON (refund/expiry path) -- started first so its 9-epoch idle clock elapses in the background ==
+  . CreateCoin(MOON) by CREATOR2 (tick 71500162)
+      tx: unfiggwdfeliufclknofxbcmhghdkybgzvumadghybhartqazzltrquekwjo  (localhost/tx/unfiggwdfeliufclknofxbcmhghdkybgzvumadghybhartqazzltrquekwjo)
+  [PASS] MOON created, status OPENING -- {'creator': 'GPMFGRDGQUHQZFQECYQTLRIIUTDDHKQXELSXQCLHVEUZDRWSYAFYWPYBWJGE', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 1, 'name': 1313820493, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71500162, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 222, 'lastTradeEpoch': 222, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}
+  . Buy(MOON) opening order by R_OPEN1 (tick 71500190)
+      tx: vfebqqmaqjdzcddklppzkyzfkpicgdsbpzbvufnvwgwamvvzvtbsjtpddebo  (localhost/tx/vfebqqmaqjdzcddklppzkyzfkpicgdsbpzbvufnvwgwamvvzvtbsjtpddebo)
+  . Buy(MOON) opening order by R_OPEN2 (tick 71500218)
+      tx: mnptkfxraxtnqdxodvrgkewskqyegadnarqwnrxxodazmweqgdsccchhtrse  (localhost/tx/mnptkfxraxtnqdxodvrgkewskqyegadnarqwnrxxodazmweqgdsccchhtrse)
+  [PASS] MOON opening batch registered both orders (batchQu > 0) -- 59405940
+
+== Phase 1: launch PEPE, opening batch (uniform price + over-cap trim/refund) ==
+  . CreateCoin(PEPE) by CREATOR1 (tick 71500246)
+      tx: vrsdbywruqmoydyfalmruqzmhemfmgqrsvfkerwlfdcxmaxlchsdfdmeuklk  (localhost/tx/vrsdbywruqmoydyfalmruqzmhemfmgqrsvfkerwlfdcxmaxlchsdfdmeuklk)
+  [PASS] PEPE created, status OPENING -- {'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 2, 'name': 1162888528, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71500246, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 222, 'lastTradeEpoch': 222, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}
+  [PASS] PEPE creator recorded correctly -- QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG
+  . Buy(PEPE) opening order by OPEN1 (tick 71500274)
+      tx: mvbaqipybdbgxarvtilogrhniomcsrxsjshnihznrgsdzjbxgariqgacvlyb  (localhost/tx/mvbaqipybdbgxarvtilogrhniomcsrxsjshnihznrgsdzjbxgariqgacvlyb)
+  . Buy(PEPE) opening order by OPEN2 (tick 71500302)
+      tx: zzwqmwuvbipmdfaydhdxkmkhhvvenhafmaxsftdwjgeopijgjyvtvhrdfyfe  (localhost/tx/zzwqmwuvbipmdfaydhdxkmkhhvvenhafmaxsftdwjgeopijgjyvtvhrdfyfe)
+  [PASS] PEPE opening batchQu after OPEN1+OPEN2 matches independent fee model -- contract=247524751 model=247524751
+  . Buy(PEPE) OVER-CAP opening order by OPEN3 (expect trim + refund) (tick 71500330)
+      tx: cezjzsduthbmzbizjqiuplgavqxdklzdfgxvwobdseemjiligosbmsgfuvkk  (localhost/tx/cezjzsduthbmzbizjqiuplgavqxdklzdfgxvwobdseemjiligosbmsgfuvkk)
+  [PASS] PEPE opening batchQu hit exactly the QU cap after OPEN3's over-cap order -- contract=377187500 cap=377187500
+  [PASS] OPEN3 was refunded the unused portion of its over-cap order -- refund=69040623 expected=69040623
+  . waiting for PEPE + MOON opening windows to settle (1200 ticks from creation, ~20 min real time) ...
+  [PASS] PEPE settled into OPEN status -- OPEN
+  [PASS] PEPE opening batch converted at exactly the token cap (uniform-price boundary) -- contract=177500000 expected=177500000
+  [PASS] PEPE sold == batchTokens right after settle
+  [PASS] PEPE realQu == batchQu (== QU cap) right after settle -- 377187500
+  [PASS] OPEN1/OPEN2/OPEN3 each got exactly the EffectiveTokens-predicted share of the uniform settlement price -- contract h1=69889341 h2=46592894 h3=61017764 model h1=69889341 h2=46592894 h3=61017764
+  [PASS] MOON settled into OPEN status (idle clock now running) -- OPEN
+  . MOON idle clock started at epoch 222; REFUNDING expected at epoch >= 231
+
+== Phase 2: curve trading (Buy/BuyWithQu/Sell/Transfer), cross-checked against the independent cost formula ==
+  [PASS] QuoteBuy matches the independent cost formula exactly -- contract={'tokens': 5000000, 'cost': 16408451, 'fee': 164085, 'total': 16572536, 'returnCode': 0} model=cost:16408451 fee:164085 total:16572536
+  . Buy(PEPE, 5000000 tokens) by TRADER1, exact predicted cost attached (attempt 1) (tick 71501488)
+      tx: mcsbtrnyhileehqungdewrlmjsseiohphvxvhyfvehlqophqsjihrhlcfvfn  (localhost/tx/mcsbtrnyhileehqungdewrlmjsseiohphvxvhyfvehlqophqsjihrhlcfvfn)
+  [PASS] TRADER1's exact-token Buy executed at exactly the predicted cost -- sold=182500000 expected=182500000 tokens=5000000
+  [PASS] PEPE realQu grew by exactly the model cost (not cost+fee -- fee is split off separately) -- realQu=393595951
+  [PASS] QuoteBudget matches the independent TokensForTotal binary-search port -- contract={'tokens': 14536702, 'total': 49999997, 'returnCode': 0} model=tokens:14536702 total:49999997
+  . BuyWithQu(PEPE, budget=50M) by TRADER1 (tick 71501515)
+      tx: gcrreqckvfnbdhrcdsedjzokgxifvzpiveqdlpucqdgwbmckdrznzcmbmixm  (localhost/tx/gcrreqckvfnbdhrcdsedjzokgxifvzpiveqdlpucqdgwbmckdrznzcmbmixm)
+  [PASS] BuyWithQu bought exactly the tokens the independent binary search predicts -- sold=197036702 expected=197036702
+  [PASS] QuoteSell matches the independent cost formula exactly -- contract={'gross': 22508713, 'fee': 225088, 'payout': 22283625, 'returnCode': 0} model=gross:22508713 fee:225088 payout:22283625
+  . Sell(PEPE, 6512234 tokens) by TRADER1 (tick 71501543)
+      tx: atowdqzlrpljaghgwdwjmwwkzajbcvqyclllkfajtdqfcwwwhdbmpbwffggj  (localhost/tx/atowdqzlrpljaghgwdwjmwwkzajbcvqyclllkfajtdqfcwwwhdbmpbwffggj)
+  [PASS] Sell paid out exactly the model-predicted payout -- actual=22283625 model=22283625
+  [PASS] PEPE sold decreased by exactly the sold amount
+  . Transfer(PEPE, 6512234 tokens) TRADER1 -> XFER_RECV (tick 71501571)
+      tx: cwcxynnldcrdpfjbcemspmiaqxjcrolzlvouopnjdfmsrvioggnjwegebfsj  (localhost/tx/cwcxynnldcrdpfjbcemspmiaqxjcrolzlvouopnjdfmsrvioggnjwegebfsj)
+  [PASS] Transfer moved exactly the requested tokens to the recipient -- recipient=6512234 sender_left=6512234
+  . Buy(PEPE, 0 tokens) -- expect ERR_INVALID_INPUT, full refund, no state change (tick 71501599)
+      tx: ikabtsynsxuwcesetwxnoxucylveqhrjoxovdbbcefdlmwrwludpdyccxodg  (localhost/tx/ikabtsynsxuwcesetwxnoxucylveqhrjoxovdbbcefdlmwrwludpdyccxodg)
+  [PASS] Zero-token Buy was rejected: fully refunded and no sold change -- balance 355710992->355710992 sold 190524468->190524468
+  . Buy(PEPE, 10M tokens) with only 1000 QU attached -- expect ERR_SLIPPAGE, no state change (tick 71501627)
+      tx: fxooohqqncbztcjcntytpqmwjdwaqnicthntellffddsnidpurpvktafievh  (localhost/tx/fxooohqqncbztcjcntytpqmwjdwaqnicthntellffddsnidpurpvktafievh)
+  [PASS] Underfunded Buy (slippage) made no state change -- before=190524468 after=190524468
+  . Process(PEPE) called by an unrelated wallet (permissionless) (tick 71501655)
+      tx: bsqrhbxkosdsveoyowygeacqjelesznopfegutmqeeohhahfmlpfesabcrgn  (localhost/tx/bsqrhbxkosdsveoyowygeacqjelesznopfegutmqeeohhahfmlpfesabcrgn)
+  . Process() accepted a call from a non-creator, non-holder-of-note wallet (permissionless by design)
+
+== Phase 3: seed a real QU/QDOGE Qswap pool (needed for the QDOGE buyback) ==
+  . live Qswap poolCreationFee = 200000000
+  . Qswap::CreatePool(QDOGE/QU) by POOLER (attempt 1) (tick 71501683)
+      tx: xxendsgxlmjzhgnnlmhunaskqhidbvxfhjscoqmcudtmtxagpzbwtlocevif  (localhost/tx/xxendsgxlmjzhgnnlmhunaskqhidbvxfhjscoqmcudtmtxagpzbwtlocevif)
+  [PASS] QU/QDOGE Qswap pool created -- {'poolExists': 1, 'reservedQuAmount': 0, 'reservedAssetAmount': 0, 'totalLiquidity': 0}
+  . QX::TransferShareManagementRights(QDOGE -> Qswap) by POOLER (tick 71501711)
+      tx: zsevikfizoxgecvruumtzhfhudfbprwcwynjkxvstebkgsjthaehqcygskfa  (localhost/tx/zsevikfizoxgecvruumtzhfhudfbprwcwynjkxvstebkgsjthaehqcygskfa)
+  . Qswap::AddLiquidity(QDOGE/QU) by POOLER (tick 71501739)
+      tx: wugglbxnifaobhruuegfstszwqbasvxpcflyralvmfbypyqhzzxxnfcdrqra  (localhost/tx/wugglbxnifaobhruuegfstszwqbasvxpcflyralvmfbypyqhzzxxnfcdrqra)
+  [PASS] QU/QDOGE pool funded with the intended initial reserves -- {'poolExists': 1, 'reservedQuAmount': 500100000, 'reservedAssetAmount': 50000000, 'totalLiquidity': 158129693}
+
+== Phase 4: buy/sell round trips on PEPE to push qdogePot past QPUMP_QDOGE_MIN_BUY ==
+  . FEEDER round-trip 0: Buy 200000000 tokens (tick 71501767)
+      tx: zbtxcrqrnoskhazzwqkpntmcnuncyymgnmqnweyrodwqwvjqqsprzntamscb  (localhost/tx/zbtxcrqrnoskhazzwqkpntmcnuncyymgnmqnweyrodwqwvjqqsprzntamscb)
+  . FEEDER round-trip 0: Sell 200000000 tokens back (tick 71501795)
+      tx: ytvtnhcznuyvxffzjlpkfivzweucqujavkczfxetwdxfxveextinvdhdxtzc  (localhost/tx/ytvtnhcznuyvxffzjlpkfivzweucqujavkczfxetwdxfxveextinvdhdxtzc)
+  . FEEDER round-trip 1: Buy 200000000 tokens (tick 71501823)
+      tx: byjzqulhlugnybaazaijgmcwrfxdjvesfskxpbrmxfjkzapgjfnzmqweaylm  (localhost/tx/byjzqulhlugnybaazaijgmcwrfxdjvesfskxpbrmxfjkzapgjfnzmqweaylm)
+  . FEEDER round-trip 1: Sell 200000000 tokens back (tick 71501851)
+      tx: kahnduqnkrxskbwwkgbvoatkcpnbkppkyyqtgtfzkhlbyskssvzonxzdwacc  (localhost/tx/kahnduqnkrxskbwwkgbvoatkcpnbkppkyyqtgtfzkhlbyskssvzonxzdwacc)
+  . FEEDER round-trip 2: Buy 200000000 tokens (tick 71501879)
+      tx: dkwjwrbawiscudzoxbyotikipspevwkqbtgqwuyeacdtqcrbnfoewebeqjmc  (localhost/tx/dkwjwrbawiscudzoxbyotikipspevwkqbtgqwuyeacdtqcrbnfoewebeqjmc)
+  . FEEDER round-trip 2: Sell 200000000 tokens back (tick 71501907)
+      tx: wnrhidxsevwzkayueitoxpuudccdqcmynqggtecynganrqjbucofueffsqac  (localhost/tx/wnrhidxsevwzkayueitoxpuudccdqcmynqggtecynganrqjbucofueffsqac)
+  [PASS] qdogePot pushed past QPUMP_QDOGE_MIN_BUY via round-trip fee volume -- qdogePot=6144259
+
+== Phase 5: TRADER2 buys out the remaining curve supply -> COMPLETE -> automatic graduation ==
+  . remaining curve supply: 519475532 tokens, predicted cost+fee: 3519251896
+  . Buy(PEPE, remaining curve supply) by TRADER2 -- triggers COMPLETE (tick 71501935)
+      tx: tzpajxtxamoapfjfrgaqdwofezchtfszttdphtdwhdaotwszfjywvtogdakl  (localhost/tx/tzpajxtxamoapfjfrgaqdwofezchtfszttdphtdwhdaotwszfjywvtogdakl)
+  [PASS] PEPE's buyout landed: reached COMPLETE or already graduated past it -- status=EMPTY sold=0 record_sold=710000000
+  . waiting for the automatic END_TICK graduation sweep (QX::IssueAsset -> Qswap::CreatePool -> QX::TransferShareManagementRights -> Qswap::AddLiquidity -> creator reward) ...
+  . graduation status: EMPTY gradStep=0
+  . waiting for automatic per-holder delivery to fully drain and close the coin ...
+  [PASS] PEPE fully closed after graduation (name blocked, permanent record kept) -- {'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0}, 'priceMilli': 10000, 'progressBps': 10000, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': True, 'statusName': 'EMPTY'}
+  [PASS] Graduation completed all 4 steps (no pool fallback) -- {'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0}
+  [PASS] Graduation seeded a real Qswap PEPE/QU pool at the recorded pool size -- pool={'poolExists': 1, 'reservedQuAmount': 2644898805, 'reservedAssetAmount': 264489880, 'totalLiquidity': 836390439} record={'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0}
+  [PASS] TRADER1 received real QX-managed PEPE shares from graduation delivery -- assets={1: 6512234} expected=6512234
+
+== Phase 6: nudge one more epoch transition now that qdogePot + the real pool are both ready ==
+  . qdogePot=9628666 totalQdogeBought=0 (baseline was 0)
+  . waiting for natural epoch transition (currently 223)...
+
+== Phase 7: wait for MOON's 9-epoch idle timeout -> automatic REFUNDING ==
+  . epoch 224: MOON status=OPEN (idle for 2/9 epochs)
+  . waiting for natural epoch transition (currently 224)...
+  . epoch 225: MOON status=OPEN (idle for 3/9 epochs)
+  . waiting for natural epoch transition (currently 225)...
+  . epoch 226: MOON status=OPEN (idle for 4/9 epochs)
+  . waiting for natural epoch transition (currently 226)...
+  . epoch 227: MOON status=OPEN (idle for 5/9 epochs)
+  . waiting for natural epoch transition (currently 227)...
+  . epoch 228: MOON status=OPEN (idle for 6/9 epochs)
+  . waiting for natural epoch transition (currently 228)...
+  . epoch 229: MOON status=OPEN (idle for 7/9 epochs)
+  . waiting for natural epoch transition (currently 229)...
+  . epoch 230: MOON status=OPEN (idle for 8/9 epochs)
+  . waiting for natural epoch transition (currently 230)...
+  . epoch 231: MOON status=EMPTY (idle for 9/9 epochs)
+  [PASS] MOON entered REFUNDING (or already fully refunded+closed) after the idle timeout -- {'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'closedEpoch': 0, 'poolFallback': 0}, 'priceMilli': 0, 'progressBps': 0, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': False, 'statusName': 'EMPTY'}
+  . waiting for automatic per-holder refund delivery to fully drain and close MOON ...
+  [PASS] MOON fully closed via the refund path (not graduated) -- {'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'closedEpoch': 0, 'poolFallback': 0}, 'priceMilli': 0, 'progressBps': 0, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': False, 'statusName': 'EMPTY'}
+  [PASS] R_OPEN1 received a nonzero pro-rata QU refund -- before=0 after=39603959
+  [PASS] R_OPEN2 received a nonzero pro-rata QU refund -- before=0 after=19801979
+  [PASS] MOON's name is freed for relaunch after a refund close (unlike a graduated close)
+  . CreateCoin(MOON) again -- confirm the refunded name is relaunchable (tick 71512999)
+      tx: pigwioehhybxjgkdmhtdjwsuqutdludadirclphsddxwvtnccjcehftbmeya  (localhost/tx/pigwioehhybxjgkdmhtdjwsuqutdludadirclphsddxwvtnccjcehftbmeya)
+  [PASS] MOON's name was successfully relaunched after being freed by the refund path -- {'creator': 'GPMFGRDGQUHQZFQECYQTLRIIUTDDHKQXELSXQCLHVEUZDRWSYAFYWPYBWJGE', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 3, 'name': 1313820493, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71512999, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 231, 'lastTradeEpoch': 231, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}
+
+== Phase 8: confirm the real QDOGE buyback fired at least once during this run ==
+  [PASS] BuyQdoge recorded a nonzero totalQuToQdoge since genesis -- baseline=0 final=9628666
+  [PASS] BuyQdoge recorded a nonzero totalQdogeBought since genesis -- baseline=0 final=932111
+  [PASS] The bought QDOGE actually landed in Qpump's own contract identity (locked for good, per design) -- final QDOGE held by Qpump's contract identity=932111
+
+========================================================================
+
+========================================================================
+  PASS  GetStats query succeeds at baseline  ({'holderEntries': 0, 'totalLaunched': 0, 'totalGraduated': 0, 'totalRefunded': 0, 'totalVolume': 0, 'shareholderPot': 0, 'burnPot': 0, 'qdogePot': 0, 'totalQuToQdoge': 0, 'totalQdogeBought': 0, 'feeReserve': 10000000000, 'totalDividends': 0, 'totalBurned': 0, 'wallets': 0, 'liveCoins': 0, 'graduatedRecords': 0})
+  PASS  GetFees: launchFee matches contract constant  (25000000)
+  PASS  GetFees: curveRaise matches contract constant  (3905000000)
+  PASS  Independent CurveCost(0, supply) matches QPUMP_CURVE_RAISE  (3905000000)
+  PASS  MOON created, status OPENING  ({'creator': 'GPMFGRDGQUHQZFQECYQTLRIIUTDDHKQXELSXQCLHVEUZDRWSYAFYWPYBWJGE', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 1, 'name': 1313820493, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71500162, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 222, 'lastTradeEpoch': 222, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0})
+  PASS  MOON opening batch registered both orders (batchQu > 0)  (59405940)
+  PASS  PEPE created, status OPENING  ({'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 2, 'name': 1162888528, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71500246, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 222, 'lastTradeEpoch': 222, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0})
+  PASS  PEPE creator recorded correctly  (QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG)
+  PASS  PEPE opening batchQu after OPEN1+OPEN2 matches independent fee model  (contract=247524751 model=247524751)
+  PASS  PEPE opening batchQu hit exactly the QU cap after OPEN3's over-cap order  (contract=377187500 cap=377187500)
+  PASS  OPEN3 was refunded the unused portion of its over-cap order  (refund=69040623 expected=69040623)
+  PASS  PEPE settled into OPEN status  (OPEN)
+  PASS  PEPE opening batch converted at exactly the token cap (uniform-price boundary)  (contract=177500000 expected=177500000)
+  PASS  PEPE sold == batchTokens right after settle
+  PASS  PEPE realQu == batchQu (== QU cap) right after settle  (377187500)
+  PASS  OPEN1/OPEN2/OPEN3 each got exactly the EffectiveTokens-predicted share of the uniform settlement price  (contract h1=69889341 h2=46592894 h3=61017764 model h1=69889341 h2=46592894 h3=61017764)
+  PASS  MOON settled into OPEN status (idle clock now running)  (OPEN)
+  PASS  QuoteBuy matches the independent cost formula exactly  (contract={'tokens': 5000000, 'cost': 16408451, 'fee': 164085, 'total': 16572536, 'returnCode': 0} model=cost:16408451 fee:164085 total:16572536)
+  PASS  TRADER1's exact-token Buy executed at exactly the predicted cost  (sold=182500000 expected=182500000 tokens=5000000)
+  PASS  PEPE realQu grew by exactly the model cost (not cost+fee -- fee is split off separately)  (realQu=393595951)
+  PASS  QuoteBudget matches the independent TokensForTotal binary-search port  (contract={'tokens': 14536702, 'total': 49999997, 'returnCode': 0} model=tokens:14536702 total:49999997)
+  PASS  BuyWithQu bought exactly the tokens the independent binary search predicts  (sold=197036702 expected=197036702)
+  PASS  QuoteSell matches the independent cost formula exactly  (contract={'gross': 22508713, 'fee': 225088, 'payout': 22283625, 'returnCode': 0} model=gross:22508713 fee:225088 payout:22283625)
+  PASS  Sell paid out exactly the model-predicted payout  (actual=22283625 model=22283625)
+  PASS  PEPE sold decreased by exactly the sold amount
+  PASS  Transfer moved exactly the requested tokens to the recipient  (recipient=6512234 sender_left=6512234)
+  PASS  Zero-token Buy was rejected: fully refunded and no sold change  (balance 355710992->355710992 sold 190524468->190524468)
+  PASS  Underfunded Buy (slippage) made no state change  (before=190524468 after=190524468)
+  PASS  QU/QDOGE Qswap pool created  ({'poolExists': 1, 'reservedQuAmount': 0, 'reservedAssetAmount': 0, 'totalLiquidity': 0})
+  PASS  QU/QDOGE pool funded with the intended initial reserves  ({'poolExists': 1, 'reservedQuAmount': 500100000, 'reservedAssetAmount': 50000000, 'totalLiquidity': 158129693})
+  PASS  qdogePot pushed past QPUMP_QDOGE_MIN_BUY via round-trip fee volume  (qdogePot=6144259)
+  PASS  PEPE's buyout landed: reached COMPLETE or already graduated past it  (status=EMPTY sold=0 record_sold=710000000)
+  PASS  PEPE fully closed after graduation (name blocked, permanent record kept)  ({'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0}, 'priceMilli': 10000, 'progressBps': 10000, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': True, 'statusName': 'EMPTY'})
+  PASS  Graduation completed all 4 steps (no pool fallback)  ({'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0})
+  PASS  Graduation seeded a real Qswap PEPE/QU pool at the recorded pool size  (pool={'poolExists': 1, 'reservedQuAmount': 2644898805, 'reservedAssetAmount': 264489880, 'totalLiquidity': 836390439} record={'creator': 'QMVYDACIEAVBTAUULDHPXPSYHOPBEHSRTALJWUYBWCGZAWYSCTPCODDBMQFG', 'coinId': 2, 'name': 1162888528, 'sold': 710000000, 'poolQu': 2644898805, 'poolTokens': 264489880, 'holders': 6, 'closedEpoch': 223, 'poolFallback': 0})
+  PASS  TRADER1 received real QX-managed PEPE shares from graduation delivery  (assets={1: 6512234} expected=6512234)
+  PASS  MOON entered REFUNDING (or already fully refunded+closed) after the idle timeout  ({'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'closedEpoch': 0, 'poolFallback': 0}, 'priceMilli': 0, 'progressBps': 0, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': False, 'statusName': 'EMPTY'})
+  PASS  MOON fully closed via the refund path (not graduated)  ({'coin': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 0, 'name': 0, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 0, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 0, 'lastTradeEpoch': 0, 'completeEpoch': 0, 'status': 0, 'gradStep': 0, 'batchSettled': 0, 'failures': 0}, 'record': {'creator': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFXIB', 'coinId': 0, 'name': 0, 'sold': 0, 'poolQu': 0, 'poolTokens': 0, 'holders': 0, 'closedEpoch': 0, 'poolFallback': 0}, 'priceMilli': 0, 'progressBps': 0, 'marketCapQu': 0, 'openingTicksLeft': 0, 'found': False, 'graduated': False, 'statusName': 'EMPTY'})
+  PASS  R_OPEN1 received a nonzero pro-rata QU refund  (before=0 after=39603959)
+  PASS  R_OPEN2 received a nonzero pro-rata QU refund  (before=0 after=19801979)
+  PASS  MOON's name is freed for relaunch after a refund close (unlike a graduated close)
+  PASS  MOON's name was successfully relaunched after being freed by the refund path  ({'creator': 'GPMFGRDGQUHQZFQECYQTLRIIUTDDHKQXELSXQCLHVEUZDRWSYAFYWPYBWJGE', 'metaDigest': '0000000000000000000000000000000000000000000000000000000000000000', 'coinId': 3, 'name': 1313820493, 'realQu': 0, 'sold': 0, 'batchQu': 0, 'batchTokens': 0, 'poolQu': 0, 'poolTokens': 0, 'snapQu': 0, 'snapSold': 0, 'scanCursor': 0, 'createdTick': 71512999, 'holders': 0, 'lastAttemptTick': 0, 'gradHolders': 0, 'createdEpoch': 231, 'lastTradeEpoch': 231, 'completeEpoch': 0, 'status': 1, 'gradStep': 0, 'batchSettled': 0, 'failures': 0})
+  PASS  BuyQdoge recorded a nonzero totalQuToQdoge since genesis  (baseline=0 final=9628666)
+  PASS  BuyQdoge recorded a nonzero totalQdogeBought since genesis  (baseline=0 final=932111)
+  PASS  The bought QDOGE actually landed in Qpump's own contract identity (locked for good, per design)  (final QDOGE held by Qpump's contract identity=932111)
+
+  45/45 passed
+
+QPUMP_TEST_COMPLETE
