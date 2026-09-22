@@ -114,8 +114,8 @@ index 0000000..a5c37bf
 +constexpr sint64 QPUMP_MIN_TRADE_FEE = 1000LL;
 +constexpr uint64 QPUMP_BPS = 10000ULL;
 +constexpr uint64 QPUMP_TRADE_FEE_BPS = 100ULL;                // 1 percent
-+constexpr uint64 QPUMP_FEE_BURN_SHARE_BPS = 2000ULL;          // 20 percent of the trade fee is burned
-+constexpr uint64 QPUMP_FEE_QDOGE_SHARE_BPS = 1000ULL;         // 10 percent buys QDOGE, locked for good
++constexpr uint64 QPUMP_FEE_BURN_SHARE_BPS = 1000ULL;          // 10 percent of the trade fee is burned
++constexpr uint64 QPUMP_FEE_QDOGE_SHARE_BPS = 2000ULL;         // 20 percent buys QDOGE, locked for good
 +constexpr sint64 QPUMP_QSWAP_LIQUIDITY_FEE = 100000LL;        // flat Qswap fee on AddLiquidity
 +constexpr sint64 QPUMP_DEFAULT_QX_ISSUANCE_FEE = 1000000000LL;
 +constexpr sint64 QPUMP_DEFAULT_QX_TRANSFER_FEE = 100LL;
@@ -4256,8 +4256,8 @@ index 0000000..24ac61b
 +    EXPECT_EQ(bought.quSpent, 21798735LL);
 +    EXPECT_EQ(getBalance(BUYER3), before - 21798735LL);
 +    EXPECT_EQ(qp.state()->shareholderPot - shareholderBefore, 151081LL);
-+    EXPECT_EQ(qp.state()->burnPot - burnBefore, 43166LL);
-+    EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 21583LL);
++    EXPECT_EQ(qp.state()->burnPot - burnBefore, 21583LL);
++    EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 43166LL);
 +
 +    const auto sellQuote = qp.quoteSell(NAME_PEPE, 4000000LL);
 +    EXPECT_EQ(sellQuote.gross, 8785274LL);
