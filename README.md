@@ -1,20 +1,20 @@
 # Qpump
 
-**A fair launchpad for meme coins on Qubic.** Anyone can create a token for about $10 instead of the
-$394 it normally costs, and the smart contract handles everything else by itself.
+**A fair launchpad for meme coins on Qubic.** Anyone can create a token for 25,000,000 QU instead of
+the 1,000,000,000 QU it normally costs, and the smart contract handles everything else by itself.
 
 It powers **[The Yard](https://theyard.meme)**, part of the QDoge Protocol. Submitted to Qubic core
 as [PR 1010](https://github.com/qubic/core/pull/1010).
 
 ## The problem
 
-Creating an asset on Qubic costs 1,000,000,000 QU (~$394). That's fine for a serious project and
-absurd for a meme coin, where most attempts are worth nothing and the fun is in trying.
+Creating an asset on Qubic costs 1,000,000,000 QU. That's fine for a serious project and absurd for
+a meme coin, where most attempts are worth nothing and the fun is in trying.
 
 ## How Qpump solves it
 
 While a token is finding its feet, balances live **inside the contract**. Nothing is issued, so a
-launch costs 25,000,000 QU (~$10). Only when a token sells out does the contract pay the full
+launch costs 25,000,000 QU, 40 times less. Only when a token sells out does the contract pay the full
 issuance fee and create the real asset, out of the money that token raised.
 
 ## A token's life
