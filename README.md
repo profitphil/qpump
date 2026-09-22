@@ -29,11 +29,14 @@ issuance fee and create the real asset, out of the money that token raised.
 
 ## What graduation does, with no help from anyone
 
-1. Pays Qubic's issuance fee and creates the real token, 1 billion supply
-2. Creates a Qswap trading pool and fills it with ~2.6B QU and ~264M tokens
-3. Locks that liquidity **forever** — there is no function to take it out
-4. Sends every holder their tokens automatically. Nobody has to claim anything
-5. Pays the creator a 50,000,000 QU reward
+A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
+
+1. **1,000,000,000 QU to QX**, which creates the real token, 1 billion supply
+2. **~200,000,000 QU to Qswap**, which opens the trading pool
+3. **~2,644,000,000 QU and ~264M tokens into that pool**, locked **forever** — there is no function
+   to take it out
+4. **200 QU per holder** to deliver everyone their tokens automatically. Nobody claims, nobody pays
+5. **50,000,000 QU to the creator**, and **10,000,000 QU burned**
 
 ## Why it's fair
 
@@ -43,15 +46,24 @@ issuance fee and create the real asset, out of the money that token raised.
 - **Dead tokens refund.** If nobody trades for about two months, holders get their QU back and the
   ticker is freed
 - **No minimums.** Buy, sell or transfer any amount
+- **Nowhere for money to leak.** Fees only ever reach shareholders, the QDOGE buyback, or the
+  contract's own fuel. There is no team wallet and no withdrawal function
 
 ## Fees
 
 | When | How much | Where it goes |
 |---|---|---|
 | Creating a token | 25,000,000 QU | 20M to shareholders, 5M burned |
-| Every trade | 1% (at least 1,000 QU) | 70% shareholders, 20% buys QDOGE, 10% burned |
+| Every buy and sell | 1%, at least 1,000 QU | 70% shareholders, 20% buys QDOGE, 10% burned |
 | Sending tokens to someone | 100 QU | Burned |
-| Graduation | from the raise | 50M to the creator, 10M burned |
+
+**Shareholders** are whoever holds Qpump contract shares; the contract pays them every epoch.
+**Burned** means the QU goes into the contract's own execution reserve, which pays Qubic for running
+it — not to any person. The **QDOGE** is bought on Qswap once per epoch and stays in the contract,
+which has no way to move it.
+
+Fees are charged on top of the price, never skimmed out of the curve, and the 1,000 QU minimum is a
+floor on the fee rather than a minimum trade. No platform wallet takes a cut of anything.
 
 ## Does it work?
 
