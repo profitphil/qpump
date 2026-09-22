@@ -483,8 +483,8 @@ TEST(ContractQpump, CurveBuyAndSellMatchTheIntegerFormulas)
     EXPECT_EQ(bought.quSpent, 21798735LL);
     EXPECT_EQ(getBalance(BUYER3), before - 21798735LL);
     EXPECT_EQ(qp.state()->shareholderPot - shareholderBefore, 151081LL);
-    EXPECT_EQ(qp.state()->burnPot - burnBefore, 43166LL);
-    EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 21583LL);
+    EXPECT_EQ(qp.state()->burnPot - burnBefore, 21583LL);
+    EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 43166LL);
 
     const auto sellQuote = qp.quoteSell(NAME_PEPE, 4000000LL);
     EXPECT_EQ(sellQuote.gross, 8785274LL);

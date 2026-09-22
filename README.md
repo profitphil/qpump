@@ -1,72 +1,81 @@
 # Qpump
 
-A bonding-curve token launchpad as a Qubic smart contract. Anyone pays a flat launch fee, a token
-trades on a linear curve inside the contract, and when the curve sells out the contract issues the
-real Qubic asset, opens and funds a Qswap pool, locks the liquidity and delivers every holder
-automatically. No admin, no pause, no creator allocation.
+**A fair launchpad for meme coins on Qubic.** Anyone can create a token for about $10 instead of the
+$394 it normally costs, and the smart contract handles everything else by itself.
 
-It powers [The Yard](https://theyard.meme), part of the QDoge Protocol.
+It powers **[The Yard](https://theyard.meme)**, part of the QDoge Protocol. Submitted to Qubic core
+as [PR 1010](https://github.com/qubic/core/pull/1010).
 
-| File | What it is |
+## The problem
+
+Creating an asset on Qubic costs 1,000,000,000 QU (~$394). That's fine for a serious project and
+absurd for a meme coin, where most attempts are worth nothing and the fun is in trying.
+
+## How Qpump solves it
+
+While a token is finding its feet, balances live **inside the contract**. Nothing is issued, so a
+launch costs 25,000,000 QU (~$10). Only when a token sells out does the contract pay the full
+issuance fee and create the real asset, out of the money that token raised.
+
+## A token's life
+
+| Stage | What happens |
 |---|---|
-| [`contract/Qpump.h`](contract/Qpump.h) | The contract, written for [qubic/core](https://github.com/qubic/core) v1.304.0 |
-| [`contract/contract_qpump.cpp`](contract/contract_qpump.cpp) | GoogleTest suite for the core test harness |
-| [`qpump-core-v1.304.0.patch`](qpump-core-v1.304.0.patch) | Adds both to a core checkout, wired in at contract index 30 |
-| [`sim/qpump_model.py`](sim/qpump_model.py) | Independent integer model of the economics, used to fuzz invariants and compute expected test values |
-| [`test-results/`](test-results) | Logs and results from live devnet runs |
+| **Create** | Pick a ticker, name and image. Pay the launch fee |
+| **Entry batch** | For ~5 minutes, every buyer pays the same price. Being fast wins nothing, so bots have no edge |
+| **Trading** | The price rises along a fixed line from 1 QU to 10 QU per token as people buy |
+| **Graduation** | All 710M tokens sold. The contract takes over |
+| **Free market** | The token trades on Qswap and QX with no ceiling |
 
-## Status
+## What graduation does, with no help from anyone
 
-| Check | Result |
-|---|---|
-| Live devnet, full lifecycle | **45 / 45 passed** |
-| Live devnet, concurrent stress run | **32 / 32 passed** |
-| Official `qubic/contract-verify` | PASSED |
-| Banned-token scan (brackets, quotes, `%`, `/`, `#`, `__`, native types) | Clean, comments included |
-| Full `contract_def.h` build with Qpump at index 30 | No Qpump errors |
-| Python fuzz of the money invariants, 3,000 randomized runs | Passes |
+1. Pays Qubic's issuance fee and creates the real token, 1 billion supply
+2. Creates a Qswap trading pool and fills it with ~2.6B QU and ~264M tokens
+3. Locks that liquidity **forever** — there is no function to take it out
+4. Sends every holder their tokens automatically. Nobody has to claim anything
+5. Pays the creator a 50,000,000 QU reward
 
-See [test-results/SUMMARY.md](test-results/SUMMARY.md) for what the devnet runs actually proved.
+## Why it's fair
 
-## How a token works
-
-| Stage | Behavior |
-|---|---|
-| Opening batch | 1,200 ticks (about 5 minutes) where every order is pooled and settled at one average price, capped at a quarter of the curve. Being first gains nothing, so snipers and bots have no edge. |
-| Curve | Linear, 1 QU to 10 QU per token over 710M tokens. A full curve raises 3,905,000,000 QU. |
-| Graduation | The contract pays QX 1B QU to issue the 1B supply, pays Qswap 200M QU to create a pool, seeds ~2.64B QU and ~264M tokens at exactly 10 QU, then delivers every holder their tokens as QX-managed shares. The creator is paid a 50M QU reward and 10M QU is burned. |
-| After graduation | The coin keeps a permanent read-only record, its ticker can never be launched again, and the asset trades on Qswap and QX. |
-| Idle | A coin with no buys or sells for 9 epochs (about two months) refunds its holders pro-rata and frees its ticker. There is no age limit. |
+- **No creator allocation.** Creators buy at the same price as everyone else, or not at all
+- **No admin.** No pause button, no fee changes, no withdrawals, no upgrades. Nobody can touch it
+- **Liquidity can't be pulled.** The pool belongs to the contract, which cannot move it
+- **Dead tokens refund.** If nobody trades for about two months, holders get their QU back and the
+  ticker is freed
+- **No minimums.** Buy, sell or transfer any amount
 
 ## Fees
 
-| Source | Split |
+| When | How much | Where it goes |
+|---|---|---|
+| Creating a token | 25,000,000 QU | 20M to shareholders, 5M burned |
+| Every trade | 1% (at least 1,000 QU) | 70% shareholders, 20% buys QDOGE, 10% burned |
+| Sending tokens to someone | 100 QU | Burned |
+| Graduation | from the raise | 50M to the creator, 10M burned |
+
+## Does it work?
+
+Tested on a live Qubic devnet, driving the real contract with real transactions:
+
+- **45 of 45** lifecycle tests passed, including a real graduation into a real Qswap pool
+- **32 of 32** stress tests passed, with 30 wallets trading 5 tokens at once
+- Passes Qubic's official `contract-verify` tool
+- Every number was checked against [an independent model](sim/qpump_model.py), not against the
+  contract's own maths
+
+Details: [test-results/SUMMARY.md](test-results/SUMMARY.md)
+
+## What's in here
+
+| File | What it is |
 |---|---|
-| Launch, 25M QU | 20M to Qpump shareholders, 5M burned into the execution reserve |
-| Trade, 1% (minimum 1,000 QU) | 70% shareholders, 20% burned, 10% buys QDOGE on Qswap and locks it in the contract |
-| Transfer, 100 QU flat | Burned |
-| Graduation | 50M QU creator reward, 10M QU burned, from the raise |
+| [`contract/Qpump.h`](contract/Qpump.h) | The contract |
+| [`contract/contract_qpump.cpp`](contract/contract_qpump.cpp) | Its test suite |
+| [`qpump-core-v1.304.0.patch`](qpump-core-v1.304.0.patch) | Adds both to a Qubic core checkout |
+| [`sim/qpump_model.py`](sim/qpump_model.py) | Independent model of the economics |
+| [`test-results/`](test-results) | Devnet logs and results |
 
-There are no minimum buys, no minimum balances and no per-holder fees: any amount can be bought,
-sold or transferred.
-
-## Interface
-
-| Type | Id | Name | Notes |
-|---|---|---|---|
-| Procedure | 1 | CreateCoin | Launch fee 25M QU; anything above it becomes the creator's opening order |
-| Procedure | 2 | Buy | Exact token count, attached QU is the most you pay |
-| Procedure | 3 | Sell | Only while the coin is on the curve |
-| Procedure | 4 | Process | Permissionless: settles a batch, expires a coin, retries graduation or pushes payouts |
-| Procedure | 5 | Claim | Collect your own delivery or refund |
-| Procedure | 6 | Transfer | Move curve tokens for a flat 100 QU |
-| Procedure | 7 | BuyWithQu | Spend an exact QU amount, with a minimum token count for slippage |
-| Function | 1-9 | GetCoin, GetHolder, QuoteBuy, QuoteSell, QuoteBudget, GetFees, ListCoins, GetStats, ListGraduated | Read-only |
-
-Every state change emits an event carrying the contract index, coin name and id, actor, QU, tokens,
-the coin's raised QU and tokens sold, the holder count, the trade fee and a counterparty id.
-
-## Build and test
+## Build and test it yourself
 
 ```bash
 git clone https://github.com/qubic/core.git && cd core && git checkout v1.304.0
@@ -76,32 +85,20 @@ git clone https://github.com/qubic/core.git && cd core && git checkout v1.304.0
 git apply ../qpump-core-v1.304.0.patch
 ```
 
-Then open `Qubic.sln`, build the `test` project in Release x64 and run:
+Open `Qubic.sln`, build the `test` project in Release x64, then:
 
 ```bash
 test.exe --gtest_filter=ContractQpump.*
 ```
 
-The `contractDescriptions` entry uses construction epoch 234 as a placeholder. On a testnet, set it
-to an epoch at or below the current one so the contract is active.
+## Good to know
 
-## Limits and storage
+- **Every token graduates at the same price**, 10 QU. A popular token gets there faster, not higher.
+  Its price can go anywhere afterwards
+- **New pools start small**, so early trades move the price a lot
+- **A graduated ticker is taken forever.** A refunded one can be used again
+- **Rounding leftovers stay in the contract**, never taken from anyone
 
-32,768 live coins, 65,536 permanent graduated records, 10 live coins per creator at a time (a slot
-frees when a coin graduates or refunds, so there is no lifetime limit), 3,355,443 holder positions
-and 838,860 wallets. Contract state is 238,502,104 bytes, well under Qubic's 1 GB limit, sized up
-front so no migration is needed as usage grows.
+The site and backend are closed source; available on request.
 
-## Known limitations
-
-- **Rounding dust stays with the contract.** Splitting the opening batch and refunds pro-rata leaves
-  a few units behind; they are never lost to any party.
-- **Unused delivery budget is burned.** If QX's transfer fee rises before every holder is delivered,
-  holders can still collect with `Claim` by attaching the fee.
-- **One graduated ticker per name**, since every graduated asset is issued by the contract.
-- **Pool liquidity is locked for good.** The Qswap position belongs to the contract, which has no
-  withdraw path, so its fee share compounds into the pool.
-
-## Licence
-
-[MIT](LICENSE).
+Licence: [MIT](LICENSE).
