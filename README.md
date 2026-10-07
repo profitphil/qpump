@@ -36,7 +36,7 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
 3. **~2,644,000,000 QU and ~264M tokens into that pool**, locked **forever** — there is no function
    to take it out
 4. **200 QU per holder** to deliver everyone their tokens automatically. Nobody claims, nobody pays
-5. **50,000,000 QU to the creator**, and **10,000,000 QU burned**
+5. **50,000,000 QU to the creator**, and **10,000,000 QU dontated to Qubic charity**
 
 ## Why it's fair
 
@@ -54,7 +54,7 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
 | When | How much | Where it goes |
 |---|---|---|
 | Creating a token | 25,000,000 QU | 20M to shareholders, 5M burned |
-| Every buy and sell | 1%, at least 1,000 QU | 70% shareholders, 20% buys QDOGE, 10% burned |
+| Every buy and sell | 1%, at least 1,000 QU | 60% shareholders, 20% buys QDOGE, 20% Qpayhub |
 | Sending tokens to someone | 100 QU | Burned |
 
 **Shareholders** are whoever holds Qpump contract shares; the contract pays them every epoch.
