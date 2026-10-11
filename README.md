@@ -36,7 +36,8 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
 3. **~2,644,000,000 QU and ~264M tokens into that pool**, locked **forever** — there is no function
    to take it out
 4. **200 QU per holder** to deliver everyone their tokens automatically. Nobody claims, nobody pays
-5. **50,000,000 QU to the creator**, and **10,000,000 QU dontated to Qubic charity**
+5. **50,000,000 QU to the creator**, and **10,000,000 QU donated to a Qubic charity identity fixed
+   in the contract**
 
 ## Why it's fair
 
@@ -47,20 +48,22 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
   ticker is freed
 - **No minimums.** Buy, sell or transfer any amount
 - **Nowhere for money to leak.** Fees only ever reach shareholders, the QDOGE buyback, or the
-  contract's own fuel. There is no team wallet and no withdrawal function
+  QTREAT contract. Every destination is a compile-time constant. There is no team wallet and no
+  withdrawal function
 
 ## Fees
 
 | When | How much | Where it goes |
 |---|---|---|
 | Creating a token | 25,000,000 QU | 20M to shareholders, 5M burned |
-| Every buy and sell | 1%, at least 1,000 QU | 60% shareholders, 20% buys QDOGE, 20% Qpayhub |
+| Every buy and sell | 1%, at least 1,000 QU | 34% shareholders, 33% buys QDOGE, 33% to the QTREAT contract |
 | Sending tokens to someone | 100 QU | Burned |
 
 **Shareholders** are whoever holds Qpump contract shares; the contract pays them every epoch.
 **Burned** means the QU goes into the contract's own execution reserve, which pays Qubic for running
 it — not to any person. The **QDOGE** is bought on Qswap once per epoch and stays in the contract,
-which has no way to move it.
+which has no way to move it. The **QTREAT** share is sent to the QTREAT smart contract once per
+epoch, where it is paid out as that contract's dividends.
 
 Fees are charged on top of the price, never skimmed out of the curve, and the 1,000 QU minimum is a
 floor on the fee rather than a minimum trade. No platform wallet takes a cut of anything.
@@ -83,18 +86,18 @@ Details: [test-results/SUMMARY.md](test-results/SUMMARY.md)
 |---|---|
 | [`contract/Qpump.h`](contract/Qpump.h) | The contract |
 | [`contract/contract_qpump.cpp`](contract/contract_qpump.cpp) | Its test suite |
-| [`qpump-core-v1.304.0.patch`](qpump-core-v1.304.0.patch) | Adds both to a Qubic core checkout |
+| [`qpump-core-v1.307.0.patch`](qpump-core-v1.307.0.patch) | Adds both to a Qubic core checkout |
 | [`sim/qpump_model.py`](sim/qpump_model.py) | Independent model of the economics |
 | [`test-results/`](test-results) | Devnet logs and results |
 
 ## Build and test it yourself
 
 ```bash
-git clone https://github.com/qubic/core.git && cd core && git checkout v1.304.0
+git clone https://github.com/qubic/core.git && cd core && git checkout v1.307.0
 ```
 
 ```bash
-git apply ../qpump-core-v1.304.0.patch
+git apply ../qpump-core-v1.307.0.patch
 ```
 
 Open `Qubic.sln`, build the `test` project in Release x64, then:
