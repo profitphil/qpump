@@ -47,19 +47,21 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
 - **Dead tokens refund.** If nobody trades for about two months, holders get their QU back and the
   ticker is freed
 - **No minimums.** Buy, sell or transfer any amount
-- **Nowhere for money to leak.** Fees only ever reach shareholders, the QDOGE buyback, or the
-  QTREAT contract. Every destination is a compile-time constant. There is no team wallet and no
-  withdrawal function
+- **Nowhere for money to leak.** Fees only ever reach the QX contract, the QDOGE buyback, the
+  QTREAT contract, Qpump shareholders, or the contract's own fuel. Every destination is a
+  compile-time constant. There is no team wallet and no withdrawal function
 
 ## Fees
 
 | When | How much | Where it goes |
 |---|---|---|
-| Creating a token | 25,000,000 QU | 20M to shareholders, 5M burned |
-| Every buy and sell | 1%, at least 1,000 QU | 34% shareholders, 33% buys QDOGE, 33% to the QTREAT contract |
+| Creating a token | 25,000,000 QU | 20M to Qpump shareholders, 5M burned |
+| Every buy and sell | 1%, at least 1,000 QU | 34% to the QX contract, 33% buys QDOGE, 33% to the QTREAT contract |
 | Sending tokens to someone | 100 QU | Burned |
 
-**Shareholders** are whoever holds Qpump contract shares; the contract pays them every epoch.
+**Qpump shareholders** are whoever holds Qpump contract shares; the launch-fee share is paid to
+them every epoch. The **QX** share is sent to the QX smart contract once per epoch, which pays it
+out to QX shareholders itself.
 **Burned** means the QU goes into the contract's own execution reserve, which pays Qubic for running
 it — not to any person. The **QDOGE** is bought on Qswap once per epoch and stays in the contract,
 which has no way to move it. The **QTREAT** share is sent to the QTREAT smart contract once per

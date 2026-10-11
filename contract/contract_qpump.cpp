@@ -86,7 +86,7 @@ public:
     // Sum of QU the contract owes to coins plus the undistributed fee pots.
     sint64 obligations() const
     {
-        sint64 total = shareholderPot + burnPot + qdogePot + qtreatPot;
+        sint64 total = shareholderPot + burnPot + qdogePot + qtreatPot + qxPot;
         for (uint32 slot = 0; slot < QPUMP_MAX_COINS; ++slot)
         {
             const QPUMP::Coin& coin = coins.get(slot);
@@ -382,10 +382,10 @@ TEST(ContractQpump, GetFeesReflectsConstantsAndCachedExternalFees)
     EXPECT_EQ(fees.graduationReward, 50000000LL);
     EXPECT_EQ(fees.graduationDonation, 10000000LL);
     EXPECT_EQ(fees.tradeFeeBps, 100ULL);
-    EXPECT_EQ(fees.feeShareholderShareBps, 6000ULL);
-    EXPECT_EQ(fees.feeQdogeShareBps, 2000ULL);
+    EXPECT_EQ(fees.feeQxShareBps, 3400ULL);
+    EXPECT_EQ(fees.feeQdogeShareBps, 3300ULL);
     EXPECT_EQ(fees.feeQtreatShareBps, 3300ULL);
-    EXPECT_EQ(fees.feeShareholderShareBps + fees.feeQdogeShareBps + fees.feeQtreatShareBps, 10000ULL);
+    EXPECT_EQ(fees.feeQxShareBps + fees.feeQdogeShareBps + fees.feeQtreatShareBps, 10000ULL);
     EXPECT_EQ(fees.curveRaise, 3905000000LL);
     EXPECT_EQ(fees.openingQuCap, 377187500LL);
     EXPECT_EQ(fees.qxIssuanceFee, 1000000000LL);
@@ -494,6 +494,7 @@ TEST(ContractQpump, CurveBuyAndSellMatchTheIntegerFormulas)
     EXPECT_EQ(quote.total, 21798735LL);
 
     sint64 shareholderBefore = qp.state()->shareholderPot;
+    sint64 qxBefore = qp.state()->qxPot;
     sint64 burnBefore = qp.state()->burnPot;
     sint64 qdogeBefore = qp.state()->qdogePot;
     sint64 qtreatBefore = qp.state()->qtreatPot;
@@ -503,8 +504,10 @@ TEST(ContractQpump, CurveBuyAndSellMatchTheIntegerFormulas)
     EXPECT_EQ(bought.tokens, 10000000LL);
     EXPECT_EQ(bought.quSpent, 21798735LL);
     EXPECT_EQ(getBalance(BUYER3), before - 21798735LL);
-    // 215,830 QU of fee splits 34/33/33, shareholders taking the remainder.
-    EXPECT_EQ(qp.state()->shareholderPot - shareholderBefore, 73384LL);
+    // 215,830 QU of fee splits 34/33/33, the QX share taking the remainder.
+    EXPECT_EQ(qp.state()->qxPot - qxBefore, 73384LL);
+    // Trades no longer pay Qpump's own shareholders; only the launch fee does.
+    EXPECT_EQ(qp.state()->shareholderPot, shareholderBefore);
     EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 71223LL);
     EXPECT_EQ(qp.state()->qtreatPot - qtreatBefore, 71223LL);
     // Trading no longer burns any part of the fee.
@@ -734,7 +737,7 @@ TEST(ContractQpump, ExpiredCoinRefundsHoldersProRata)
     qp.checkSolvent();
 }
 
-TEST(ContractQpump, EndEpochPaysDividendsBurnsPotsAndFundsQtreat)
+TEST(ContractQpump, EndEpochPaysPotsToQxAndQtreat)
 {
     ContractTestingQpump qp;
     qp.launchPepeWithBatch();
@@ -747,6 +750,9 @@ TEST(ContractQpump, EndEpochPaysDividendsBurnsPotsAndFundsQtreat)
     sint64 qtreatPot = qp.state()->qtreatPot;
     EXPECT_GT(qtreatPot, 0LL);
     sint64 qtreatBefore = getBalance(QTREAT_CONTRACT_ID);
+    sint64 qxPot = qp.state()->qxPot;
+    EXPECT_GT(qxPot, 0LL);
+    sint64 qxBalanceBefore = getBalance(QX_CONTRACT_ID);
 
     qp.endEpoch();
     EXPECT_EQ(qp.state()->burnPot, 0LL);
@@ -758,6 +764,13 @@ TEST(ContractQpump, EndEpochPaysDividendsBurnsPotsAndFundsQtreat)
     EXPECT_EQ(qp.state()->qtreatPot, 0LL);
     EXPECT_EQ(qp.state()->totalToQtreat, qtreatPot);
     EXPECT_EQ(getBalance(QTREAT_CONTRACT_ID), qtreatBefore + qtreatPot);
+    // The QX share leaves for the QX contract's address, where its own
+    // POST_INCOMING_TRANSFER books a qpiTransfer into _earnedAmount and QX pays
+    // it out to QX shareholders itself. QX runs its own callbacks at a lower
+    // index, so it may already have distributed part of its balance.
+    EXPECT_EQ(qp.state()->qxPot, 0LL);
+    EXPECT_EQ(qp.state()->totalToQx, qxPot);
+    EXPECT_GE(getBalance(QX_CONTRACT_ID), qxBalanceBefore);
     qp.checkSolvent();
 }
 
