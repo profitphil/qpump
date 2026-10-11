@@ -3218,10 +3218,10 @@ index 70354d1..713fd22 100644
 +GLOBAL_VAR_DECL UserProcedureRegistry* userProcedureRegistry GLOBAL_VAR_INIT(nullptr);
 diff --git a/src/contracts/Qpump.h b/src/contracts/Qpump.h
 new file mode 100644
-index 0000000..e1e09ff
+index 0000000..0894a59
 --- /dev/null
 +++ b/src/contracts/Qpump.h
-@@ -0,0 +1,3732 @@
+@@ -0,0 +1,3749 @@
 +using namespace QPI;
 +
 +// Qpump: bonding-curve launchpad for meme coins.
@@ -3238,9 +3238,9 @@ index 0000000..e1e09ff
 +// Balances are internal until graduation issues the real asset.
 +// No admin, no pause. Fees and limits are constants below.
 +//
-+// The trade fee splits 34 percent to shareholders, 33 percent into a QDOGE
-+// buyback the contract keeps for good, and 33 percent to the QTREAT
-+// contract's dividend fund. The graduation donation goes to a fixed charity
++// The trade fee splits 34 percent to the QX contract, which pays it out to
++// QX shareholders, 33 percent into a QDOGE buyback the contract keeps for
++// good, and 33 percent to the QTREAT contract's dividend fund. The graduation donation goes to a fixed charity
 +// identity. All three destinations are compile-time constants, so no key
 +// can redirect them.
 +
@@ -3277,7 +3277,7 @@ index 0000000..e1e09ff
 +constexpr uint64 QPUMP_TRADE_FEE_BPS = 100ULL;                // 1 percent
 +constexpr uint64 QPUMP_FEE_QDOGE_SHARE_BPS = 3300ULL;         // 33 percent buys QDOGE, locked for good
 +constexpr uint64 QPUMP_FEE_QTREAT_SHARE_BPS = 3300ULL;        // 33 percent to the QTREAT contract's dividend fund
-+constexpr uint64 QPUMP_FEE_SHAREHOLDER_SHARE_BPS = 3400ULL;   // 34 percent; taken as the remainder, so rounding dust lands here
++constexpr uint64 QPUMP_FEE_QX_SHARE_BPS = 3400ULL;            // 34 percent to the QX contract; taken as the remainder, so rounding dust lands here
 +constexpr sint64 QPUMP_QSWAP_LIQUIDITY_FEE = 100000LL;        // flat Qswap fee on AddLiquidity
 +constexpr sint64 QPUMP_DEFAULT_QX_ISSUANCE_FEE = 1000000000LL;
 +constexpr sint64 QPUMP_DEFAULT_QX_TRANSFER_FEE = 100LL;
@@ -3369,7 +3369,7 @@ index 0000000..e1e09ff
 +static_assert(QPUMP_COST_SLOPE == QPUMP_END_PRICE_MILLI - QPUMP_START_PRICE_MILLI);
 +static_assert(QPUMP_COST_DENOMINATOR == 2ULL * 710000000ULL * QPUMP_MILLI);
 +static_assert(QPUMP_OPENING_TOKEN_CAP * 4 == QPUMP_CURVE_SUPPLY);
-+static_assert(QPUMP_FEE_QDOGE_SHARE_BPS + QPUMP_FEE_QTREAT_SHARE_BPS + QPUMP_FEE_SHAREHOLDER_SHARE_BPS == QPUMP_BPS);
++static_assert(QPUMP_FEE_QDOGE_SHARE_BPS + QPUMP_FEE_QTREAT_SHARE_BPS + QPUMP_FEE_QX_SHARE_BPS == QPUMP_BPS);
 +static_assert(QPUMP_LAUNCH_FEE_BURN <= QPUMP_LAUNCH_FEE);
 +static_assert((QPUMP_MAX_COINS & (QPUMP_MAX_COINS - 1)) == 0);
 +static_assert((QPUMP_NAME_CAPACITY & (QPUMP_NAME_CAPACITY - 1)) == 0);
@@ -3505,6 +3505,7 @@ index 0000000..e1e09ff
 +        sint64 burnPot;
 +        sint64 qdogePot;
 +        sint64 qtreatPot;
++        sint64 qxPot;
 +        sint64 totalQuToQdoge;
 +        sint64 totalQdogeBought;
 +        sint64 cachedQxIssuanceFee;
@@ -3517,6 +3518,7 @@ index 0000000..e1e09ff
 +        sint64 totalDividends;
 +        sint64 totalBurned;
 +        sint64 totalToQtreat;
++        sint64 totalToQx;
 +        sint64 totalDonated;
 +    };
 +
@@ -4085,7 +4087,7 @@ index 0000000..e1e09ff
 +        sint64 graduationDonation;
 +        sint64 minTradeFee;
 +        uint64 tradeFeeBps;
-+        uint64 feeShareholderShareBps;
++        uint64 feeQxShareBps;
 +        uint64 feeQdogeShareBps;
 +        uint64 feeQtreatShareBps;
 +        sint64 qxIssuanceFee;
@@ -4146,12 +4148,14 @@ index 0000000..e1e09ff
 +        sint64 burnPot;
 +        sint64 qdogePot;
 +        sint64 qtreatPot;
++        sint64 qxPot;
 +        sint64 totalQuToQdoge;
 +        sint64 totalQdogeBought;
 +        sint64 feeReserve;
 +        sint64 totalDividends;
 +        sint64 totalBurned;
 +        sint64 totalToQtreat;
++        sint64 totalToQx;
 +        sint64 totalDonated;
 +        uint64 wallets;
 +        uint32 liveCoins;
@@ -4773,7 +4777,7 @@ index 0000000..e1e09ff
 +        locals.qtreat = static_cast<sint64>(div(static_cast<uint64>(input.fee) * QPUMP_FEE_QTREAT_SHARE_BPS, QPUMP_BPS));
 +        state.mut().qdogePot += locals.qdoge;
 +        state.mut().qtreatPot += locals.qtreat;
-+        state.mut().shareholderPot += input.fee - locals.qdoge - locals.qtreat;
++        state.mut().qxPot += input.fee - locals.qdoge - locals.qtreat;
 +    }
 +
 +    // Puts a holder entry at the head of its list.
@@ -5853,7 +5857,7 @@ index 0000000..e1e09ff
 +        output.graduationDonation = QPUMP_GRADUATION_DONATION;
 +        output.minTradeFee = QPUMP_MIN_TRADE_FEE;
 +        output.tradeFeeBps = QPUMP_TRADE_FEE_BPS;
-+        output.feeShareholderShareBps = QPUMP_FEE_SHAREHOLDER_SHARE_BPS;
++        output.feeQxShareBps = QPUMP_FEE_QX_SHARE_BPS;
 +        output.feeQdogeShareBps = QPUMP_FEE_QDOGE_SHARE_BPS;
 +        output.feeQtreatShareBps = QPUMP_FEE_QTREAT_SHARE_BPS;
 +        output.qxIssuanceFee = state.get().cachedQxIssuanceFee;
@@ -5925,7 +5929,9 @@ index 0000000..e1e09ff
 +        output.totalDonated = state.get().totalDonated;
 +        output.qdogePot = state.get().qdogePot;
 +        output.qtreatPot = state.get().qtreatPot;
++        output.qxPot = state.get().qxPot;
 +        output.totalToQtreat = state.get().totalToQtreat;
++        output.totalToQx = state.get().totalToQx;
 +        output.totalQuToQdoge = state.get().totalQuToQdoge;
 +        output.totalQdogeBought = state.get().totalQdogeBought;
 +        output.wallets = state.get().walletIds.population();
@@ -6938,6 +6944,17 @@ index 0000000..e1e09ff
 +                state.mut().qtreatPot = 0;
 +            }
 +        }
++        // QX's POST_INCOMING_TRANSFER books a qpiTransfer into its earned
++        // amount, which it pays out to QX shareholders itself, so this needs no
++        // call into that contract either.
++        if (state.get().qxPot > 0)
++        {
++            if (qpi.transfer(id(QX_CONTRACT_INDEX, 0, 0, 0), state.get().qxPot) >= 0)
++            {
++                state.mut().totalToQx += state.get().qxPot;
++                state.mut().qxPot = 0;
++            }
++        }
 +        if (state.get().burnPot > 0)
 +        {
 +            if (qpi.burn(state.get().burnPot) >= 0)
@@ -6956,10 +6973,10 @@ index 0000000..e1e09ff
 +};
 diff --git a/test/contract_qpump.cpp b/test/contract_qpump.cpp
 new file mode 100644
-index 0000000..219c8d6
+index 0000000..81ccb5a
 --- /dev/null
 +++ b/test/contract_qpump.cpp
-@@ -0,0 +1,1027 @@
+@@ -0,0 +1,1040 @@
 +#define NO_UEFI
 +
 +#include "contract_testing.h"
@@ -7048,7 +7065,7 @@ index 0000000..219c8d6
 +    // Sum of QU the contract owes to coins plus the undistributed fee pots.
 +    sint64 obligations() const
 +    {
-+        sint64 total = shareholderPot + burnPot + qdogePot + qtreatPot;
++        sint64 total = shareholderPot + burnPot + qdogePot + qtreatPot + qxPot;
 +        for (uint32 slot = 0; slot < QPUMP_MAX_COINS; ++slot)
 +        {
 +            const QPUMP::Coin& coin = coins.get(slot);
@@ -7344,10 +7361,10 @@ index 0000000..219c8d6
 +    EXPECT_EQ(fees.graduationReward, 50000000LL);
 +    EXPECT_EQ(fees.graduationDonation, 10000000LL);
 +    EXPECT_EQ(fees.tradeFeeBps, 100ULL);
-+    EXPECT_EQ(fees.feeShareholderShareBps, 6000ULL);
-+    EXPECT_EQ(fees.feeQdogeShareBps, 2000ULL);
++    EXPECT_EQ(fees.feeQxShareBps, 3400ULL);
++    EXPECT_EQ(fees.feeQdogeShareBps, 3300ULL);
 +    EXPECT_EQ(fees.feeQtreatShareBps, 3300ULL);
-+    EXPECT_EQ(fees.feeShareholderShareBps + fees.feeQdogeShareBps + fees.feeQtreatShareBps, 10000ULL);
++    EXPECT_EQ(fees.feeQxShareBps + fees.feeQdogeShareBps + fees.feeQtreatShareBps, 10000ULL);
 +    EXPECT_EQ(fees.curveRaise, 3905000000LL);
 +    EXPECT_EQ(fees.openingQuCap, 377187500LL);
 +    EXPECT_EQ(fees.qxIssuanceFee, 1000000000LL);
@@ -7456,6 +7473,7 @@ index 0000000..219c8d6
 +    EXPECT_EQ(quote.total, 21798735LL);
 +
 +    sint64 shareholderBefore = qp.state()->shareholderPot;
++    sint64 qxBefore = qp.state()->qxPot;
 +    sint64 burnBefore = qp.state()->burnPot;
 +    sint64 qdogeBefore = qp.state()->qdogePot;
 +    sint64 qtreatBefore = qp.state()->qtreatPot;
@@ -7465,8 +7483,10 @@ index 0000000..219c8d6
 +    EXPECT_EQ(bought.tokens, 10000000LL);
 +    EXPECT_EQ(bought.quSpent, 21798735LL);
 +    EXPECT_EQ(getBalance(BUYER3), before - 21798735LL);
-+    // 215,830 QU of fee splits 34/33/33, shareholders taking the remainder.
-+    EXPECT_EQ(qp.state()->shareholderPot - shareholderBefore, 73384LL);
++    // 215,830 QU of fee splits 34/33/33, the QX share taking the remainder.
++    EXPECT_EQ(qp.state()->qxPot - qxBefore, 73384LL);
++    // Trades no longer pay Qpump's own shareholders; only the launch fee does.
++    EXPECT_EQ(qp.state()->shareholderPot, shareholderBefore);
 +    EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 71223LL);
 +    EXPECT_EQ(qp.state()->qtreatPot - qtreatBefore, 71223LL);
 +    // Trading no longer burns any part of the fee.
@@ -7696,7 +7716,7 @@ index 0000000..219c8d6
 +    qp.checkSolvent();
 +}
 +
-+TEST(ContractQpump, EndEpochPaysDividendsBurnsPotsAndFundsQtreat)
++TEST(ContractQpump, EndEpochPaysPotsToQxAndQtreat)
 +{
 +    ContractTestingQpump qp;
 +    qp.launchPepeWithBatch();
@@ -7709,6 +7729,9 @@ index 0000000..219c8d6
 +    sint64 qtreatPot = qp.state()->qtreatPot;
 +    EXPECT_GT(qtreatPot, 0LL);
 +    sint64 qtreatBefore = getBalance(QTREAT_CONTRACT_ID);
++    sint64 qxPot = qp.state()->qxPot;
++    EXPECT_GT(qxPot, 0LL);
++    sint64 qxBalanceBefore = getBalance(QX_CONTRACT_ID);
 +
 +    qp.endEpoch();
 +    EXPECT_EQ(qp.state()->burnPot, 0LL);
@@ -7720,6 +7743,13 @@ index 0000000..219c8d6
 +    EXPECT_EQ(qp.state()->qtreatPot, 0LL);
 +    EXPECT_EQ(qp.state()->totalToQtreat, qtreatPot);
 +    EXPECT_EQ(getBalance(QTREAT_CONTRACT_ID), qtreatBefore + qtreatPot);
++    // The QX share leaves for the QX contract's address, where its own
++    // POST_INCOMING_TRANSFER books a qpiTransfer into _earnedAmount and QX pays
++    // it out to QX shareholders itself. QX runs its own callbacks at a lower
++    // index, so it may already have distributed part of its balance.
++    EXPECT_EQ(qp.state()->qxPot, 0LL);
++    EXPECT_EQ(qp.state()->totalToQx, qxPot);
++    EXPECT_GE(getBalance(QX_CONTRACT_ID), qxBalanceBefore);
 +    qp.checkSolvent();
 +}
 +
