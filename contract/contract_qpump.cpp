@@ -1037,4 +1037,3 @@ TEST(ContractQpump, ProcessPayoutsRecoversFromATransientExternalCallFailure)
     EXPECT_FALSE(qp.getCoin(NAME_PEPE).found); // fully delivered and closed
     qp.checkSolvent();
 }
-
