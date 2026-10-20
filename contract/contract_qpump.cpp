@@ -153,6 +153,10 @@ public:
         INIT_CONTRACT(QSWAP);
         callSystemProcedure(QSWAP_CONTRACT_INDEX, INITIALIZE);
         callSystemProcedure(QSWAP_CONTRACT_INDEX, BEGIN_EPOCH);
+        // QTREAT receives the 33% fee share through its DepositDividends
+        // procedure, so it has to be registered for the invoke to land.
+        INIT_CONTRACT(QTREAT);
+        callSystemProcedure(QTREAT_CONTRACT_INDEX, INITIALIZE);
         INIT_CONTRACT(QPUMP);
         callSystemProcedure(QPUMP_CONTRACT_INDEX, INITIALIZE);
         callSystemProcedure(QPUMP_CONTRACT_INDEX, BEGIN_EPOCH);
@@ -340,6 +344,16 @@ public:
         return output;
     }
 
+    // QTREAT's own GetFunds (function 3), to prove the fee share really
+    // reached its dividend fund rather than just leaving this contract.
+    QTREAT::GetFunds_output qtreatFunds()
+    {
+        QTREAT::GetFunds_input input{};
+        QTREAT::GetFunds_output output;
+        callFunction(QTREAT_CONTRACT_INDEX, 3, input, output);
+        return output;
+    }
+
     QPUMP::ListGraduated_output listGraduated(uint32 offset)
     {
         QPUMP::ListGraduated_input input{};
@@ -493,8 +507,8 @@ TEST(ContractQpump, CurveBuyAndSellMatchTheIntegerFormulas)
     EXPECT_EQ(quote.fee, 215830LL);
     EXPECT_EQ(quote.total, 21798735LL);
 
-    sint64 shareholderBefore = qp.state()->shareholderPot;
     sint64 qxBefore = qp.state()->qxPot;
+    sint64 shareholderBefore = qp.state()->shareholderPot;
     sint64 burnBefore = qp.state()->burnPot;
     sint64 qdogeBefore = qp.state()->qdogePot;
     sint64 qtreatBefore = qp.state()->qtreatPot;
@@ -504,9 +518,10 @@ TEST(ContractQpump, CurveBuyAndSellMatchTheIntegerFormulas)
     EXPECT_EQ(bought.tokens, 10000000LL);
     EXPECT_EQ(bought.quSpent, 21798735LL);
     EXPECT_EQ(getBalance(BUYER3), before - 21798735LL);
-    // 215,830 QU of fee splits 34/33/33, the QX share taking the remainder.
+    // 215,830 QU of fee splits 34/33/33, with QX taking the remainder,
+    // which is why its slice is 73,384 and not the nominal 73,382. None of a
+    // trade fee reaches this contract's own shareholders.
     EXPECT_EQ(qp.state()->qxPot - qxBefore, 73384LL);
-    // Trades no longer pay Qpump's own shareholders; only the launch fee does.
     EXPECT_EQ(qp.state()->shareholderPot, shareholderBefore);
     EXPECT_EQ(qp.state()->qdogePot - qdogeBefore, 71223LL);
     EXPECT_EQ(qp.state()->qtreatPot - qtreatBefore, 71223LL);
@@ -737,7 +752,7 @@ TEST(ContractQpump, ExpiredCoinRefundsHoldersProRata)
     qp.checkSolvent();
 }
 
-TEST(ContractQpump, EndEpochPaysPotsToQxAndQtreat)
+TEST(ContractQpump, EndEpochPaysDividendsBurnsPotsAndFundsQxAndQtreat)
 {
     ContractTestingQpump qp;
     qp.launchPepeWithBatch();
@@ -747,30 +762,32 @@ TEST(ContractQpump, EndEpochPaysPotsToQxAndQtreat)
     // Only the launch fee still feeds the burn pot; trades no longer do.
     sint64 burnPot = qp.state()->burnPot;
     EXPECT_EQ(burnPot, QPUMP_LAUNCH_FEE_BURN);
+    // Dividends to this contract's own shares come from the launch fee alone.
+    EXPECT_EQ(qp.state()->shareholderPot, QPUMP_LAUNCH_FEE - QPUMP_LAUNCH_FEE_BURN);
     sint64 qtreatPot = qp.state()->qtreatPot;
     EXPECT_GT(qtreatPot, 0LL);
-    sint64 qtreatBefore = getBalance(QTREAT_CONTRACT_ID);
     sint64 qxPot = qp.state()->qxPot;
     EXPECT_GT(qxPot, 0LL);
+    sint64 qtreatBalanceBefore = getBalance(QTREAT_CONTRACT_ID);
+    sint64 qtreatFundBefore = static_cast<sint64>(qp.qtreatFunds().dividendFund);
     sint64 qxBalanceBefore = getBalance(QX_CONTRACT_ID);
 
     qp.endEpoch();
     EXPECT_EQ(qp.state()->burnPot, 0LL);
     EXPECT_EQ(qp.state()->totalBurned, burnPot);
     EXPECT_LT(qp.state()->shareholderPot, static_cast<sint64>(NUMBER_OF_COMPUTORS));
-    // The QTREAT share leaves for that contract's address, where its own
-    // POST_INCOMING_TRANSFER books it into its dividend fund. QTREAT is not
-    // initialized in this fixture, so only the QU movement is checked here.
+    // The QTREAT share is a plain transfer, which QTREAT's
+    // POST_INCOMING_TRANSFER books into its dividend fund, so it must show up
+    // both as QU at QTREAT's address and inside that fund.
     EXPECT_EQ(qp.state()->qtreatPot, 0LL);
     EXPECT_EQ(qp.state()->totalToQtreat, qtreatPot);
-    EXPECT_EQ(getBalance(QTREAT_CONTRACT_ID), qtreatBefore + qtreatPot);
-    // The QX share leaves for the QX contract's address, where its own
-    // POST_INCOMING_TRANSFER books a qpiTransfer into _earnedAmount and QX pays
-    // it out to QX shareholders itself. QX runs its own callbacks at a lower
-    // index, so it may already have distributed part of its balance.
+    EXPECT_EQ(getBalance(QTREAT_CONTRACT_ID), qtreatBalanceBefore + qtreatPot);
+    EXPECT_EQ(static_cast<sint64>(qp.qtreatFunds().dividendFund), qtreatFundBefore + qtreatPot);
+    // The QX share lands at QX's address, where its own
+    // POST_INCOMING_TRANSFER adds it to what QX pays its shareholders.
     EXPECT_EQ(qp.state()->qxPot, 0LL);
     EXPECT_EQ(qp.state()->totalToQx, qxPot);
-    EXPECT_GE(getBalance(QX_CONTRACT_ID), qxBalanceBefore);
+    EXPECT_EQ(getBalance(QX_CONTRACT_ID), qxBalanceBefore + qxPot);
     qp.checkSolvent();
 }
 
@@ -867,7 +884,7 @@ TEST(ContractQpump, HolderListsStayLinkedAcrossCoinsTradesAndRefunds)
     {
         id w(100 + i, 7, 7, 7);
         id to(500 + i, 7, 7, 7);
-        EXPECT_EQ(qp.transfer(w, to, NAME_MOON, qp.getHolder(NAME_MOON, w).tokens, QPUMP_TRANSFER_FEE).returnCode, QPUMP_OK);
+        EXPECT_EQ(qp.transfer(w, to, NAME_MOON, qp.getHolder(NAME_MOON, w).tokens, QPUMP_TRANSFER_FEE + QPUMP_NEW_POSITION_FEE).returnCode, QPUMP_OK);
     }
     EXPECT_TRUE(qp.state()->holderListsConsistent());
 
@@ -919,10 +936,22 @@ TEST(ContractQpump, TransferOfAnyAmountCanCreateANewHolder)
     ContractTestingQpump qp;
     qp.launchPepeWithBatch();
 
-    EXPECT_EQ(qp.transfer(BUYER1, WHALE, NAME_PEPE, 1LL, QPUMP_TRANSFER_FEE).returnCode, QPUMP_OK);
+    // Creating a position costs the new-position fee on top: at the bare
+    // transfer fee the sender would consume shared map capacity for 100 QU.
+    sint64 realQuBefore = qp.getCoin(NAME_PEPE).coin.realQu;
+    EXPECT_EQ(qp.transfer(BUYER1, WHALE, NAME_PEPE, 1LL, QPUMP_TRANSFER_FEE).returnCode, QPUMP_ERR_INSUFFICIENT_REWARD);
+    EXPECT_FALSE(qp.getHolder(NAME_PEPE, WHALE).found);
+
+    const auto made = qp.transfer(BUYER1, WHALE, NAME_PEPE, 1LL, QPUMP_TRANSFER_FEE + QPUMP_NEW_POSITION_FEE);
+    EXPECT_EQ(made.returnCode, QPUMP_OK);
+    EXPECT_EQ(made.fee, QPUMP_TRANSFER_FEE + QPUMP_NEW_POSITION_FEE);
     EXPECT_EQ(qp.getHolder(NAME_PEPE, WHALE).tokens, 1LL);
     EXPECT_EQ(qp.getCoin(NAME_PEPE).coin.holders, 4U);
     EXPECT_EQ(qp.getStats().wallets, 4ULL);
+    // The surcharge funds the delivery budget the new entry reserves.
+    EXPECT_EQ(qp.getCoin(NAME_PEPE).coin.realQu, realQuBefore + QPUMP_NEW_POSITION_FEE);
+    // A transfer to an existing position stays at the flat fee.
+    EXPECT_EQ(qp.transfer(BUYER1, WHALE, NAME_PEPE, 1LL, QPUMP_TRANSFER_FEE).returnCode, QPUMP_OK);
     qp.checkSolvent();
 }
 
@@ -1037,3 +1066,4 @@ TEST(ContractQpump, ProcessPayoutsRecoversFromATransientExternalCallFailure)
     EXPECT_FALSE(qp.getCoin(NAME_PEPE).found); // fully delivered and closed
     qp.checkSolvent();
 }
+

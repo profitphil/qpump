@@ -58,6 +58,7 @@ A full curve raises 3,905,000,000 QU. The contract spends it, in this order:
 | Creating a token | 25,000,000 QU | 20M to Qpump shareholders, 5M burned |
 | Every buy and sell | 1%, at least 1,000 QU | 34% to the QX contract, 33% buys QDOGE, 33% to the QTREAT contract |
 | Sending tokens to someone | 100 QU | Burned |
+| Sending to someone who doesn't hold it yet | +1,000 QU | Into that token's own raise |
 
 **Qpump shareholders** are whoever holds Qpump contract shares; the launch-fee share is paid to
 them every epoch. The **QX** share is sent to the QX smart contract once per epoch, which pays it
